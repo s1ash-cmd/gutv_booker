@@ -11,4 +11,9 @@ public class Equipment
     public string Description { get; set; } = "";
 
     public ICollection<EquipmentItem> Items { get; set; } = new List<EquipmentItem>();
+
+    public bool HasAvailableItems()
+    {
+        return Items.Any(item => item.IsAvailable);
+    }
 }

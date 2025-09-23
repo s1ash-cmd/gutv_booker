@@ -15,4 +15,11 @@ public class Booking
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
+
+    public bool IsOverlapping(Booking other)
+    {
+        return other != null && StartDate < other.EndDate && EndDate > other.StartDate;
+    }
+
+    //сделать проверку, что за 3 дня до брони, даты по порядку
 }
