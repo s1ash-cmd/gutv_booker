@@ -1,0 +1,6 @@
+@gutv_booker_HostAddress = http://localhost:5131
+
+GET {{gutv_booker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
