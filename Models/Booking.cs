@@ -18,7 +18,7 @@ public class Booking
 
     public bool IsOverlapping(Booking other)
     {
-        return other != null && StartDate < other.EndDate && EndDate > other.StartDate;
+        return StartDate < other.EndDate && EndDate > other.StartDate;
     }
 
     //сделать проверку, что за 3 дня до брони, даты по порядку
