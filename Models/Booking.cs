@@ -19,5 +19,22 @@
         public DateTime EndDate { get; set; }
 
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
+
+        public void ApproveBooking()
+        {
+            Status = BookingStatus.Approved;
+        }
+
+        public void CancelBooking()
+        {
+            Status = BookingStatus.Cancelled;
+        }
+
+        public bool ThreeDays()
+        {
+            return StartDate.Date >= DateTime.UtcNow.Date.AddDays(3);
+        }
+
+        public bool HasValidDates() => EndDate > StartDate;
     }
 }
