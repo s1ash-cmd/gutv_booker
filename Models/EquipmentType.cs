@@ -1,27 +1,27 @@
 ﻿using System.Text.Json;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public enum Category
-{
-    Camera,
-    Lens,
-    Card,
-    Battery,
-    Charger,
-    Sound,
-    Stand,
-    Light,
-    Other
-}
-
 namespace gutv_booker.Models
 {
     public class EquipmentType
     {
+        public enum EquipmentCategory
+        {
+            Camera,
+            Lens,
+            Card,
+            Battery,
+            Charger,
+            Sound,
+            Stand,
+            Light,
+            Other
+        }
+
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public Category Category { get; set; }
+        public EquipmentCategory Category { get; set; }
 
         public string AttributesJson { get; set; } = "{}";
 

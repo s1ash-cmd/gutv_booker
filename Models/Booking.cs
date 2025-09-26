@@ -1,13 +1,14 @@
 ﻿namespace gutv_booker.Models
 {
-    public enum BookingStatus
-    {
-        Pending,
-        Approved,
-        Cancelled
-    }
     public class Booking
     {
+        public enum BookingStatus
+        {
+            Pending,
+            Approved,
+            Cancelled
+        }
+
         public int Id { get; set; }
 
         public int UserId { get; set; }

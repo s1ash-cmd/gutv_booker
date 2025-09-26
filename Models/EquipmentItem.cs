@@ -21,7 +21,7 @@
         {
             return Available && !bookings.Any(b =>
                 b.EquipmentItemId == Id &&
-                b.Status == BookingStatus.Approved &&
+                b.Status == Booking.BookingStatus.Approved &&
                 start < b.EndDate && end > b.StartDate
             );
         }
