@@ -23,8 +23,8 @@ namespace gutv_booker.Controllers
             return Ok(user);
         }
 
-        // DELETE api/users/{id}
-        [HttpDelete("{id}")]
+        // DELETE api/users/delete/{id}
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             var success = await _userService.DeleteUser(id);
