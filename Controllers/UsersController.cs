@@ -15,12 +15,12 @@ namespace gutv_booker.Controllers
             _userService = userService;
         }
 
-        // POST api/users?telegramId=12345
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(string telegramId)
+        // POST api/users/create
+        [HttpPost("create")]
+        public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
-            var user = await _userService.CreateUser(telegramId);
-            return Ok(user);
+            var usr = await _userService.CreateUser(user.TelegramId);
+            return Ok(usr);
         }
 
         // DELETE api/users/delete/{id}
@@ -29,7 +29,7 @@ namespace gutv_booker.Controllers
         {
             var success = await _userService.DeleteUser(id);
             if (!success) return NotFound();
-            return NoContent();
+            return Ok();
         }
 
         // PUT api/users/ban/{id}
@@ -38,7 +38,7 @@ namespace gutv_booker.Controllers
         {
             var success = await _userService.BanUser(id);
             if (!success) return NotFound();
-            return NoContent();
+            return Ok();
         }
 
         // PUT api/users/unban/{id}
@@ -47,7 +47,7 @@ namespace gutv_booker.Controllers
         {
             var success = await _userService.UnbanUser(id);
             if (!success) return NotFound();
-            return NoContent();
+            return Ok();
         }
 
         // PUT api/users/makeadmin/{id}
@@ -56,7 +56,7 @@ namespace gutv_booker.Controllers
         {
             var success = await _userService.MakeAdmin(id);
             if (!success) return NotFound();
-            return NoContent();
+            return Ok();
         }
 
         // PUT api/users/makeuser/{id}
@@ -65,7 +65,7 @@ namespace gutv_booker.Controllers
         {
             var success = await _userService.MakeUser(id);
             if (!success) return NotFound();
-            return NoContent();
+            return Ok();
         }
 
         // GET api/users/checkadmin/{id}

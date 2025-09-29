@@ -11,18 +11,14 @@ public class EquipmentService
         _context = context;
     }
 
-    public async Task<EquipmentType> CreateEquipmentType(
-        string name,
-        string description,
-        EquipmentType.EquipmentCategory category,
-        Dictionary<string, object>? attributes = null)
+    public async Task<EquipmentType> CreateEquipmentType(string name, string description, EquipmentType.EquipmentCategory category, string? attributesJson = null)
     {
         var equipmentType = new EquipmentType
         {
             Name = name,
             Description = description,
             Category = category,
-            Attributes = attributes ?? new Dictionary<string, object>()
+            AttributesJson = attributesJson ?? "{}"
         };
 
         _context.EquipmentTypes.Add(equipmentType);
@@ -31,5 +27,14 @@ public class EquipmentService
     }
 
 
+    public async Task<bool> DeleteEquipmentType(int id)
+    {
+        var equipmentType = await _context.EquipmentTypes.FindAsync(id);
+        if (equipmentType == null) return false;
+
+        _context.EquipmentTypes.Remove(equipmentType);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
 }

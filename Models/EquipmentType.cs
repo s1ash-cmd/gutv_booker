@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace gutv_booker.Models
 {
@@ -23,6 +24,7 @@ namespace gutv_booker.Models
         public string Description { get; set; } = "";
         public EquipmentCategory Category { get; set; }
 
+        [JsonIgnore]
         public string AttributesJson { get; set; } = "{}";
 
         [NotMapped]

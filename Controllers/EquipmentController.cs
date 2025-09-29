@@ -17,37 +17,20 @@ namespace gutv_booker.Controllers
 
         // POST api/equipment/createtype
         [HttpPost("createtype")]
-        public async Task<ActionResult<EquipmentType>> CreateEquipmentType(
-            string name,
-            string description,
-            EquipmentType.EquipmentCategory category,
-            string? attributesJson = null)
+        public async Task<ActionResult<EquipmentType>> CreateEquipmentType([FromBody] EquipmentType equipmentType)
         {
-            Dictionary<string, object>? attributes = null;
-
-            if (!string.IsNullOrEmpty(attributesJson))
-            {
-                try
-                {
-                    attributes = System.Text.Json.JsonSerializer
-                        .Deserialize<Dictionary<string, object>>(attributesJson);
-                }
-                catch
-                {
-                    return BadRequest("Некорректный JSON для атрибутов.");
-                }
-            }
-
-            var equipmentType = await _equipmentService.CreateEquipmentType(
-                name,
-                description,
-                category,
-                attributes
-            );
-
-            return Ok(equipmentType);
+            var eqType = await _equipmentService.CreateEquipmentType(equipmentType.Name, equipmentType.Description, equipmentType.Category, equipmentType.AttributesJson);
+            return Ok(eqType);
         }
 
+        // DELETE api/equipment/delete/{id}
+        [HttpDelete("delete/{id}")]
+        public async Task<ActionResult> DeleteEquipmentType(int id)
+        {
+            var succes = await _equipmentService.DeleteEquipmentType(id);
+            if (!succes) return NotFound();
+            return Ok();
+        }
 
     }
 }

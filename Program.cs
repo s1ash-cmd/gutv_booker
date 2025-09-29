@@ -23,7 +23,14 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "GUtv booker");
+        c.RoutePrefix = string.Empty;
+    });
+
+
 }
 
 app.UseHttpsRedirection();
