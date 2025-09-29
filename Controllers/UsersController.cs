@@ -17,7 +17,7 @@ namespace gutv_booker.Controllers
 
         // POST api/users?telegramId=12345
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser([FromQuery] string telegramId)
+        public async Task<ActionResult<User>> CreateUser(string telegramId)
         {
             var user = await _userService.CreateUser(telegramId);
             return Ok(user);

@@ -12,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<EquipmentService>();
+builder.Services.AddScoped<BookingService>();
 
 builder.Services.AddControllers();
 

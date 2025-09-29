@@ -12,6 +12,30 @@ public class UserService
         _context = context;
     }
 
+    public async Task<User> CreateUser(string telegramId, User.UserRole role = User.UserRole.User)
+    {
+        var user = new User
+        {
+            TelegramId = telegramId,
+            Role = role,
+            Banned = false
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<bool> DeleteUser(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> BanUser(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
@@ -56,29 +80,5 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         return user != null && user.Role == User.UserRole.Admin;
-    }
-
-    public async Task<User> CreateUser(string telegramId, User.UserRole role = User.UserRole.User)
-    {
-        var user = new User
-        {
-            TelegramId = telegramId,
-            Role = role,
-            Banned = false
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return user;
-    }
-
-    public async Task<bool> DeleteUser(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
     }
 }
