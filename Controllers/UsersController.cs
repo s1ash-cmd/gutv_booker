@@ -19,7 +19,7 @@ namespace gutv_booker.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
-            var usr = await _userService.CreateUser(user.TelegramId);
+            var usr = await _userService.CreateUser(user.Login, user.Password, user.Name, user.TelegramId);
             return Ok(usr);
         }
 

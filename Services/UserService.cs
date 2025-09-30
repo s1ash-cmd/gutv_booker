@@ -12,10 +12,13 @@ public class UserService
         _context = context;
     }
 
-    public async Task<User> CreateUser(string telegramId, User.UserRole role = User.UserRole.User)
+    public async Task<User> CreateUser(string login, string password, string name, string telegramId, User.UserRole role = User.UserRole.User)
     {
         var user = new User
         {
+            Login = login,
+            Password = password,
+            Name = name,
             TelegramId = telegramId,
             Role = role,
             Banned = false
