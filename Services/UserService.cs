@@ -79,9 +79,4 @@ public class UserService
         return true;
     }
 
-    public async Task<bool> CheckAdmin(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        return user != null && user.Role == User.UserRole.Admin;
-    }
 }

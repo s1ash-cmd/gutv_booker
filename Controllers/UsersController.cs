@@ -68,12 +68,5 @@ namespace gutv_booker.Controllers
             return Ok();
         }
 
-        // GET api/users/checkadmin/{id}
-        [HttpGet("checkadmin/{id}")]
-        public async Task<ActionResult<bool>> CheckAdmin(int id)
-        {
-            var isAdmin = await _userService.CheckAdmin(id);
-            return Ok(isAdmin);
-        }
     }
 }
