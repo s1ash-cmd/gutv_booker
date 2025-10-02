@@ -26,13 +26,27 @@ public class EquipmentService
         return equipmentType;
     }
 
-
     public async Task<bool> DeleteEquipmentType(int id)
     {
         var equipmentType = await _context.EquipmentTypes.FindAsync(id);
         if (equipmentType == null) return false;
 
         _context.EquipmentTypes.Remove(equipmentType);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null, EquipmentType.EquipmentCategory? category = null, string? attributesJson = null)
+    {
+        var equipmentType = await _context.EquipmentTypes.FindAsync(id);
+        if (equipmentType == null) return false;
+
+        if (!string.IsNullOrEmpty(name)) equipmentType.Name = name;
+        if (!string.IsNullOrEmpty(description)) equipmentType.Description = description;
+        if (category.HasValue) equipmentType.Category = category.Value;
+        if (!string.IsNullOrEmpty(attributesJson)) equipmentType.AttributesJson = attributesJson;
+
+        _context.EquipmentTypes.Update(equipmentType);
         await _context.SaveChangesAsync();
         return true;
     }

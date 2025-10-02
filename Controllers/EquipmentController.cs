@@ -32,5 +32,21 @@ namespace gutv_booker.Controllers
             return Ok();
         }
 
+        // PUT api/equipment/update/{id}
+        [HttpPut("update/{id}")]
+        public async Task<ActionResult> UpdateEquipmentType(int id, [FromBody] EquipmentType equipmentType)
+        {
+            var success = await _equipmentService.UpdateEquipmentType(
+                id,
+                name: equipmentType.Name,
+                description: equipmentType.Description,
+                category: equipmentType.Category,
+                attributesJson: equipmentType.AttributesJson
+            );
+
+            if (!success) return NotFound();
+            return Ok();
+        }
+
     }
 }
