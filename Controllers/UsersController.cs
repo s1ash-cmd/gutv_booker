@@ -111,8 +111,8 @@ namespace gutv_booker.Controllers
             return Ok($"Пользователь с ID {id} разблокирован");
         }
 
-        // PUT api/users/makeadmin/{id}
-        [HttpPut("makeadmin/{id}")]
+        // PUT api/users/make_admin/{id}
+        [HttpPut("make_admin/{id}")]
         public async Task<ActionResult> MakeAdmin(int id)
         {
             if (id <= 0)
@@ -125,8 +125,8 @@ namespace gutv_booker.Controllers
             return Ok($"Пользователь с ID {id} теперь администратор");
         }
 
-        // PUT api/users/makeuser/{id}
-        [HttpPut("makeuser/{id}")]
+        // PUT api/users/make_user/{id}
+        [HttpPut("make_user/{id}")]
         public async Task<ActionResult> MakeUser(int id)
         {
             if (id <= 0)

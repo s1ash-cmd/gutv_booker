@@ -35,6 +35,23 @@ public class EquipmentService
         return await _context.EquipmentTypes.ToListAsync();
     }
 
+    public async Task<EquipmentType?> GetEquipmentTypeById(int id)
+    {
+        return await _context.EquipmentTypes.FindAsync(id);
+    }
+
+    public async Task<List<EquipmentType>> GetEquipmentTypeByName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return new List<EquipmentType>();
+
+        name = name.ToLower();
+
+        return await _context.EquipmentTypes
+            .Where(u => u.Name.ToLower().Contains(name))
+            .ToListAsync();
+    }
+
     public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null, EquipmentType.EquipmentCategory? category = null, string? attributesJson = null)
     {
         var equipmentType = await _context.EquipmentTypes.FindAsync(id);
@@ -59,6 +76,8 @@ public class EquipmentService
         await _context.SaveChangesAsync();
         return true;
     }
+
+
 
     public async Task<EquipmentItem> CreateEquipmentItem(int equipmentTypeId, bool available)
     {
@@ -87,4 +106,25 @@ public class EquipmentService
         return item;
     }
 
+    public async Task<List<EquipmentItem>> GetAllEquipmentItems()
+    {
+        return await _context.EquipmentItems.ToListAsync();
+    }
+
+    public async Task<EquipmentItem?> GetEquipmentItemById(int id)
+    {
+        return await _context.EquipmentItems.FindAsync(id);
+    }
+
+    //Дописать поиск по eqId
+
+    public async Task<bool> DeleteEquipmentItem(int id)
+    {
+        var equipmentItem = await _context.EquipmentItems.FindAsync(id);
+        if (equipmentItem == null) return false;
+
+        _context.EquipmentItems.Remove(equipmentItem);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }
