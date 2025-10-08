@@ -62,14 +62,17 @@ public class EquipmentService
 
     public async Task<EquipmentItem> CreateEquipmentItem(int equipmentTypeId, bool available)
     {
-        var equipmentTypeExists = await _context.EquipmentTypes.AnyAsync(et => et.Id == equipmentTypeId);
-        if (!equipmentTypeExists)
+        var equipmentType = await _context.EquipmentTypes
+            .FirstOrDefaultAsync(et => et.Id == equipmentTypeId);
+
+        if (equipmentType == null)
             throw new InvalidOperationException($"EquipmentType с Id {equipmentTypeId} не найден");
 
-        var countForType = await _context.EquipmentItems
-            .CountAsync(e => e.EquipmentTypeId == equipmentTypeId);
+        int categoryCode = (int)equipmentType.Category;
 
-        var inventoryNumber = $"{equipmentTypeId}-{countForType + 1:D3}";
+        var countForType = await _context.EquipmentItems.CountAsync(e => e.EquipmentTypeId == equipmentTypeId);
+
+        var inventoryNumber = $"{categoryCode}-{equipmentTypeId + 1:D3}-{countForType + 1:D2}";
 
         var item = new EquipmentItem
         {
@@ -83,4 +86,5 @@ public class EquipmentService
 
         return item;
     }
+
 }
