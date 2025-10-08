@@ -1,5 +1,6 @@
 ﻿using gutv_booker.Data;
 using gutv_booker.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace gutv_booker.Services;
 public class EquipmentService
@@ -13,6 +14,9 @@ public class EquipmentService
 
     public async Task<EquipmentType> CreateEquipmentType(string name, string description, EquipmentType.EquipmentCategory category, string? attributesJson = null)
     {
+        if (await _context.EquipmentTypes.AnyAsync(u => u.Name == name))
+            throw new InvalidOperationException($"Оборудование '{name}' уже существует");
+
         var equipmentType = new EquipmentType
         {
             Name = name,
@@ -26,14 +30,9 @@ public class EquipmentService
         return equipmentType;
     }
 
-    public async Task<bool> DeleteEquipmentType(int id)
+    public async Task<List<EquipmentType>> GetAllEquipmentTypes()
     {
-        var equipmentType = await _context.EquipmentTypes.FindAsync(id);
-        if (equipmentType == null) return false;
-
-        _context.EquipmentTypes.Remove(equipmentType);
-        await _context.SaveChangesAsync();
-        return true;
+        return await _context.EquipmentTypes.ToListAsync();
     }
 
     public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null, EquipmentType.EquipmentCategory? category = null, string? attributesJson = null)
@@ -51,4 +50,37 @@ public class EquipmentService
         return true;
     }
 
+    public async Task<bool> DeleteEquipmentType(int id)
+    {
+        var equipmentType = await _context.EquipmentTypes.FindAsync(id);
+        if (equipmentType == null) return false;
+
+        _context.EquipmentTypes.Remove(equipmentType);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<EquipmentItem> CreateEquipmentItem(int equipmentTypeId, bool available)
+    {
+        var equipmentTypeExists = await _context.EquipmentTypes.AnyAsync(et => et.Id == equipmentTypeId);
+        if (!equipmentTypeExists)
+            throw new InvalidOperationException($"EquipmentType с Id {equipmentTypeId} не найден");
+
+        var countForType = await _context.EquipmentItems
+            .CountAsync(e => e.EquipmentTypeId == equipmentTypeId);
+
+        var inventoryNumber = $"{equipmentTypeId}-{countForType + 1:D3}";
+
+        var item = new EquipmentItem
+        {
+            EquipmentTypeId = equipmentTypeId,
+            InventoryNumber = inventoryNumber,
+            Available = available
+        };
+
+        _context.EquipmentItems.Add(item);
+        await _context.SaveChangesAsync();
+
+        return item;
+    }
 }
