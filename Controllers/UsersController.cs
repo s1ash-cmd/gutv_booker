@@ -48,8 +48,8 @@ namespace gutv_booker.Controllers
         }
 
         // GET api/users/get_all
+        [Authorize(Roles = "Admin")]
         [HttpGet("get_all")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetAllUsers()
         {
             var users = await _userService.GetAllUsers();
@@ -60,8 +60,8 @@ namespace gutv_booker.Controllers
         }
 
         // GET api/users/get_by_id/{id}
+        [Authorize(Roles = "Admin")]
         [HttpGet("get_by_id/{id}")]
-        [Authorize]
         public async Task<ActionResult<UserDtoNoAuth>> GetUserById(int id)
         {
             if (id <= 0)
@@ -75,8 +75,8 @@ namespace gutv_booker.Controllers
         }
 
         // GET api/users/get_by_name/{namePart}
+        [Authorize(Roles = "Admin")]
         [HttpGet("get_by_name/{namePart}")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetUsersByName(string namePart)
         {
             var users = await _userService.GetUsersByName(namePart);
@@ -87,8 +87,8 @@ namespace gutv_booker.Controllers
         }
 
         // PUT api/users/ban/{id}
-        [HttpPut("ban/{id}")]
         [Authorize(Roles = "Admin")]
+        [HttpPut("ban/{id}")]
         public async Task<ActionResult> BanUser(int id)
         {
             if (id <= 0)
@@ -102,8 +102,8 @@ namespace gutv_booker.Controllers
         }
 
         // PUT api/users/unban/{id}
-        [HttpPut("unban/{id}")]
         [Authorize(Roles = "Admin")]
+        [HttpPut("unban/{id}")]
         public async Task<ActionResult> UnbanUser(int id)
         {
             if (id <= 0)
@@ -117,8 +117,8 @@ namespace gutv_booker.Controllers
         }
 
         // PUT api/users/make_admin/{id}
-        [HttpPut("make_admin/{id}")]
         [Authorize(Roles = "Admin")]
+        [HttpPut("make_admin/{id}")]
         public async Task<ActionResult> MakeAdmin(int id)
         {
             if (id <= 0)
@@ -132,8 +132,8 @@ namespace gutv_booker.Controllers
         }
 
         // PUT api/users/make_user/{id}
-        [HttpPut("make_user/{id}")]
         [Authorize(Roles = "Admin")]
+        [HttpPut("make_user/{id}")]
         public async Task<ActionResult> MakeUser(int id)
         {
             if (id <= 0)
@@ -147,8 +147,8 @@ namespace gutv_booker.Controllers
         }
 
         // DELETE api/users/delete/{id}
-        [HttpDelete("delete/{id}")]
         [Authorize(Roles = "Admin")]
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             if (id <= 0)
