@@ -17,7 +17,7 @@ namespace gutv_booker.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<UserDtoNoAuth>> CreateUser([FromBody] CreateUserRequest request)
+        public async Task<ActionResult<UserDtoNoAuth>> CreateUser([FromBody] CreateUserRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Login) ||
                 string.IsNullOrWhiteSpace(request.Password) ||
@@ -37,14 +37,6 @@ namespace gutv_booker.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        public class CreateUserRequest
-        {
-            public string Login { get; set; } = "";
-            public string Password { get; set; } = "";
-            public string Name { get; set; } = "";
-            public string TelegramId { get; set; } = "";
         }
 
         // GET api/users/get_all

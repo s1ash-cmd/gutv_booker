@@ -42,4 +42,12 @@ namespace gutv_booker.Models
         public User.UserRole Role { get; set; }
         public bool Banned { get; set; }
     }
+
+    public class CreateUserRequestDto
+    {
+        public string Login { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string TelegramId { get; set; } = "";
+    }
 }
