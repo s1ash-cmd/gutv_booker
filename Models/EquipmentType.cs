@@ -20,12 +20,11 @@ namespace gutv_booker.Models
         }
 
         public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string Description { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public EquipmentCategory Category { get; set; }
 
-        [JsonIgnore]
-        public string AttributesJson { get; set; } = "{}";
+        [JsonIgnore] public string AttributesJson { get; set; } = "{}";
 
         [NotMapped]
         public Dictionary<string, object> Attributes

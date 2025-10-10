@@ -1,4 +1,6 @@
-﻿using gutv_booker.Data;
+﻿using System.Security.Cryptography;
+using System.Text;
+using gutv_booker.Data;
 using gutv_booker.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,15 +24,47 @@ public class UserService
         Banned = user.Banned
     };
 
-    public async Task<User> CreateUser(string login, string password, string name, string telegramId, User.UserRole role = User.UserRole.User)
+    public async Task<User?> GetByLoginAsync(string login)
     {
-        if (await _context.Users.AnyAsync(u => u.Login == login))
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Login.ToLower() == login.ToLower());
+    }
+
+    public async Task SaveRefreshTokenAsync(int userId, string refreshToken)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return;
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken
+                                      && u.RefreshTokenExpiryTime > DateTime.UtcNow);
+    }
+
+    public async Task<UserDtoNoAuth> CreateUserAsync(string login, string password, string name, string telegramId = "",
+        User.UserRole role = User.UserRole.User)
+    {
+        if (await _context.Users.AnyAsync(u => u.Login.ToLower() == login.ToLower()))
             throw new InvalidOperationException($"Пользователь с логином '{login}' уже существует");
+
+        var saltBytes = RandomNumberGenerator.GetBytes(16);
+        var salt = Convert.ToBase64String(saltBytes);
+
+        using var sha256 = SHA256.Create();
+        var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + salt));
+        var passwordHash = Convert.ToBase64String(hashBytes);
 
         var user = new User
         {
             Login = login,
-            Password = password,
+            PasswordHash = passwordHash,
+            Salt = salt,
             Name = name,
             TelegramId = telegramId,
             Role = role,
@@ -39,7 +73,15 @@ public class UserService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-        return user;
+
+        return new UserDtoNoAuth
+        {
+            Id = user.Id,
+            Name = user.Name,
+            TelegramId = user.TelegramId,
+            Role = user.Role,
+            Banned = user.Banned
+        };
     }
 
     public async Task<List<UserDtoNoAuth>> GetAllUsers()
@@ -52,29 +94,14 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) return null;
-
-        return new UserDtoNoAuth
-        {
-            Id = user.Id,
-            Name = user.Name,
-            TelegramId = user.TelegramId,
-            Role = user.Role,
-            Banned = user.Banned
-        };
+        return ToDto(user);
     }
 
     public async Task<List<UserDtoNoAuth>> GetUsersByName(string namePart)
     {
         return await _context.Users
             .Where(u => u.Name.ToLower().Contains(namePart.ToLower()))
-            .Select(u => new UserDtoNoAuth
-            {
-                Id = u.Id,
-                Name = u.Name,
-                TelegramId = u.TelegramId,
-                Role = u.Role,
-                Banned = u.Banned
-            })
+            .Select(u => ToDto(u))
             .ToListAsync();
     }
 
@@ -82,7 +109,6 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
-
         user.Banned = true;
         await _context.SaveChangesAsync();
         return true;
@@ -92,7 +118,6 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
-
         user.Banned = false;
         await _context.SaveChangesAsync();
         return true;
@@ -102,7 +127,6 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
-
         user.Role = User.UserRole.Admin;
         await _context.SaveChangesAsync();
         return true;
@@ -112,7 +136,6 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
-
         user.Role = User.UserRole.User;
         await _context.SaveChangesAsync();
         return true;
@@ -122,7 +145,6 @@ public class UserService
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
-
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
         return true;

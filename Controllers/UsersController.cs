@@ -1,6 +1,7 @@
 ﻿using gutv_booker.Services;
 using gutv_booker.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace gutv_booker.Controllers
 {
@@ -15,30 +16,22 @@ namespace gutv_booker.Controllers
             _userService = userService;
         }
 
-        // POST api/users/create
         [HttpPost("create")]
-        public async Task<ActionResult<User>> CreateUser([FromBody] User user)
+        public async Task<ActionResult<UserDtoNoAuth>> CreateUser([FromBody] CreateUserRequest request)
         {
-            if (string.IsNullOrWhiteSpace(user.Login) ||
-                string.IsNullOrWhiteSpace(user.Password) ||
-                string.IsNullOrWhiteSpace(user.Name) ||
-                user.Password.Trim().Length < 8)
+            if (string.IsNullOrWhiteSpace(request.Login) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Name) ||
+                request.Password.Length < 8)
             {
-                return BadRequest("Логин, Имя обязательны, Пароль обязателен и должен быть не менее 8 символов");
+                return BadRequest("Логин и имя обязательны. Пароль обязателен и минимум 8 символов.");
             }
 
             try
             {
-                var usr = await _userService.CreateUser(user.Login, user.Password, user.Name, user.TelegramId);
-                var usrDto = new UserDtoNoAuth
-                {
-                    Id = usr.Id,
-                    Name = usr.Name,
-                    TelegramId = usr.TelegramId,
-                    Role = usr.Role,
-                    Banned = usr.Banned
-                };
-                return Ok(usrDto);
+                var userDto = await _userService.CreateUserAsync(request.Login, request.Password, request.Name,
+                    request.TelegramId);
+                return Ok(userDto);
             }
             catch (InvalidOperationException ex)
             {
@@ -46,12 +39,20 @@ namespace gutv_booker.Controllers
             }
         }
 
+        public class CreateUserRequest
+        {
+            public string Login { get; set; } = "";
+            public string Password { get; set; } = "";
+            public string Name { get; set; } = "";
+            public string TelegramId { get; set; } = "";
+        }
+
         // GET api/users/get_all
         [HttpGet("get_all")]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetAllUsers()
         {
             var users = await _userService.GetAllUsers();
-
             if (!users.Any())
                 return NotFound("Пользователи не найдены");
 
@@ -60,7 +61,8 @@ namespace gutv_booker.Controllers
 
         // GET api/users/get_by_id/{id}
         [HttpGet("get_by_id/{id}")]
-        public async Task<ActionResult<User>> GetUserById(int id)
+        [Authorize]
+        public async Task<ActionResult<UserDtoNoAuth>> GetUserById(int id)
         {
             if (id <= 0)
                 return BadRequest("Некорректный ID пользователя.");
@@ -74,6 +76,7 @@ namespace gutv_booker.Controllers
 
         // GET api/users/get_by_name/{namePart}
         [HttpGet("get_by_name/{namePart}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetUsersByName(string namePart)
         {
             var users = await _userService.GetUsersByName(namePart);
@@ -85,6 +88,7 @@ namespace gutv_booker.Controllers
 
         // PUT api/users/ban/{id}
         [HttpPut("ban/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> BanUser(int id)
         {
             if (id <= 0)
@@ -99,6 +103,7 @@ namespace gutv_booker.Controllers
 
         // PUT api/users/unban/{id}
         [HttpPut("unban/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UnbanUser(int id)
         {
             if (id <= 0)
@@ -113,6 +118,7 @@ namespace gutv_booker.Controllers
 
         // PUT api/users/make_admin/{id}
         [HttpPut("make_admin/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> MakeAdmin(int id)
         {
             if (id <= 0)
@@ -127,6 +133,7 @@ namespace gutv_booker.Controllers
 
         // PUT api/users/make_user/{id}
         [HttpPut("make_user/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> MakeUser(int id)
         {
             if (id <= 0)
@@ -141,6 +148,7 @@ namespace gutv_booker.Controllers
 
         // DELETE api/users/delete/{id}
         [HttpDelete("delete/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             if (id <= 0)

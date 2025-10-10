@@ -3,6 +3,7 @@ using gutv_booker.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace gutv_booker.Services;
+
 public class EquipmentService
 {
     private readonly AppDbContext _context;
@@ -12,7 +13,8 @@ public class EquipmentService
         _context = context;
     }
 
-    public async Task<EquipmentType> CreateEquipmentType(string name, string description, EquipmentType.EquipmentCategory category, string? attributesJson = null)
+    public async Task<EquipmentType> CreateEquipmentType(string name, string description,
+        EquipmentType.EquipmentCategory category, string? attributesJson = null)
     {
         if (await _context.EquipmentTypes.AnyAsync(u => u.Name == name))
             throw new InvalidOperationException($"Оборудование '{name}' уже существует");
@@ -47,12 +49,16 @@ public class EquipmentService
 
         name = name.ToLower();
 
-        return await _context.EquipmentTypes
-            .Where(u => u.Name.ToLower().Contains(name))
-            .ToListAsync();
+        return await _context.EquipmentTypes.Where(u => u.Name.ToLower().Contains(name)).ToListAsync();
     }
 
-    public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null, EquipmentType.EquipmentCategory? category = null, string? attributesJson = null)
+    public async Task<List<EquipmentType>> GetEquipmentTypeByCategory(EquipmentType.EquipmentCategory category)
+    {
+        return await _context.EquipmentTypes.Where(e => e.Category == category).ToListAsync();
+    }
+
+    public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null,
+        EquipmentType.EquipmentCategory? category = null, string? attributesJson = null)
     {
         var equipmentType = await _context.EquipmentTypes.FindAsync(id);
         if (equipmentType == null) return false;
@@ -78,11 +84,9 @@ public class EquipmentService
     }
 
 
-
     public async Task<EquipmentItem> CreateEquipmentItem(int equipmentTypeId, bool available)
     {
-        var equipmentType = await _context.EquipmentTypes
-            .FirstOrDefaultAsync(et => et.Id == equipmentTypeId);
+        var equipmentType = await _context.EquipmentTypes.FirstOrDefaultAsync(et => et.Id == equipmentTypeId);
 
         if (equipmentType == null)
             throw new InvalidOperationException($"EquipmentType с Id {equipmentTypeId} не найден");
@@ -91,7 +95,7 @@ public class EquipmentService
 
         var countForType = await _context.EquipmentItems.CountAsync(e => e.EquipmentTypeId == equipmentTypeId);
 
-        var inventoryNumber = $"{categoryCode}-{equipmentTypeId + 1:D3}-{countForType + 1:D2}";
+        var inventoryNumber = $"{categoryCode}-{equipmentTypeId + 0:D3}-{countForType + 1:D2}";
 
         var item = new EquipmentItem
         {
@@ -116,7 +120,10 @@ public class EquipmentService
         return await _context.EquipmentItems.FindAsync(id);
     }
 
-    //Дописать поиск по eqId
+    public async Task<List<EquipmentItem>> GetEquipmentItemsByType(int equipmentTypeId)
+    {
+        return await _context.EquipmentItems.Where(e => e.EquipmentTypeId == equipmentTypeId).ToListAsync();
+    }
 
     public async Task<bool> DeleteEquipmentItem(int id)
     {

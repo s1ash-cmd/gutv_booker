@@ -78,6 +78,19 @@ namespace gutv_booker.Controllers
             return Ok(eqTypes);
         }
 
+        // GET api/equipment/get_type_by_category/category
+        [HttpGet("get_type_by_category/{category}")]
+        public async Task<ActionResult<List<EquipmentType>>> GetEquipmentTypeByCategory(
+            EquipmentType.EquipmentCategory category)
+        {
+            var eqTypes = await _equipmentService.GetEquipmentTypeByCategory(category);
+
+            if (!eqTypes.Any())
+                return NotFound($"Оборудование категории '{category}' не найдено");
+
+            return Ok(eqTypes);
+        }
+
         // PUT api/equipment/update_type/{id}
         [HttpPut("update_type/{id}")]
         public async Task<ActionResult> UpdateEquipmentType(int id, [FromBody] EquipmentType equipmentType)
@@ -91,7 +104,9 @@ namespace gutv_booker.Controllers
             if (!Enum.IsDefined(typeof(EquipmentType.EquipmentCategory), equipmentType.Category))
                 return BadRequest("Категория оборудования некорректна");
 
-            var success = await _equipmentService.UpdateEquipmentType(id, name: equipmentType.Name, description: equipmentType.Description, category: equipmentType.Category, attributesJson: equipmentType.AttributesJson);
+            var success = await _equipmentService.UpdateEquipmentType(id, name: equipmentType.Name,
+                description: equipmentType.Description, category: equipmentType.Category,
+                attributesJson: equipmentType.AttributesJson);
 
             if (!success) return NotFound($"Оборудование с ID {id} не найдено");
             return Ok("Обновление прошло успешно");
@@ -111,7 +126,6 @@ namespace gutv_booker.Controllers
         }
 
 
-
         // POST api/equipment/create_item
         [HttpPost("create_item")]
         public async Task<ActionResult<EquipmentItem>> CreateEquipmentItem([FromBody] EquipmentItem equipmentItem)
@@ -121,7 +135,8 @@ namespace gutv_booker.Controllers
 
             try
             {
-                var createdItem = await _equipmentService.CreateEquipmentItem(equipmentItem.EquipmentTypeId, equipmentItem.Available);
+                var createdItem =
+                    await _equipmentService.CreateEquipmentItem(equipmentItem.EquipmentTypeId, equipmentItem.Available);
                 return Ok(createdItem);
             }
             catch (Exception ex)
@@ -154,6 +169,20 @@ namespace gutv_booker.Controllers
                 return NotFound($"Оборудование с Id = {id} не найдено");
 
             return Ok(equipmentItem);
+        }
+
+        // GET api/equipment/get_item_by_type/{typeId}
+        [HttpGet("get_item_by_type/{typeId}")]
+        public async Task<ActionResult<EquipmentType>> GetItemByType(int typeId)
+        {
+            if (typeId <= 0)
+                return BadRequest("ID должен быть больше нуля");
+
+            var eqItems = await _equipmentService.GetEquipmentItemsByType(typeId);
+            if (!eqItems.Any())
+                return NotFound("Оборудование не найдено");
+
+            return Ok(eqItems);
         }
 
         // DELETE api/equipment/delete_item/{id}
