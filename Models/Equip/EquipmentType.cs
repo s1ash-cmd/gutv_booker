@@ -24,7 +24,11 @@ namespace gutv_booker.Models
         public string Description { get; set; } = string.Empty;
         public EquipmentCategory Category { get; set; }
 
-        [JsonIgnore] public string AttributesJson { get; set; } = "{}";
+        [JsonIgnore]
+        public string AttributesJson { get; set; } = "{}";
+
+        public bool Osnova { get; set; } = false;
+        public bool Ronin { get; set; } = false;
 
         [NotMapped]
         public Dictionary<string, object> Attributes

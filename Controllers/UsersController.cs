@@ -1,4 +1,6 @@
-﻿using gutv_booker.Services;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using gutv_booker.Services;
 using gutv_booker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +19,7 @@ namespace gutv_booker.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<UserDtoNoAuth>> CreateUser([FromBody] CreateUserRequestDto request)
+        public async Task<ActionResult<UserNoAuthDto>> CreateUser([FromBody] CreateUserRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Login) ||
                 string.IsNullOrWhiteSpace(request.Password) ||
@@ -29,8 +31,8 @@ namespace gutv_booker.Controllers
 
             try
             {
-                var userDto = await _userService.CreateUserAsync(request.Login, request.Password, request.Name,
-                    request.TelegramId);
+                var userDto = await _userService.CreateUserAsync(request.Login, request.Password, request.Name, request.JoinDate,
+                    request.TelegramId,  request.Ronin);
                 return Ok(userDto);
             }
             catch (InvalidOperationException ex)
@@ -42,7 +44,7 @@ namespace gutv_booker.Controllers
         // GET api/users/get_all
         [Authorize(Roles = "Admin")]
         [HttpGet("get_all")]
-        public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<UserNoAuthDto>>> GetAllUsers()
         {
             var users = await _userService.GetAllUsers();
             if (!users.Any())
@@ -54,7 +56,7 @@ namespace gutv_booker.Controllers
         // GET api/users/get_by_id/{id}
         [Authorize(Roles = "Admin")]
         [HttpGet("get_by_id/{id}")]
-        public async Task<ActionResult<UserDtoNoAuth>> GetUserById(int id)
+        public async Task<ActionResult<UserNoAuthDto>> GetUserById(int id)
         {
             if (id <= 0)
                 return BadRequest("Некорректный ID пользователя.");
@@ -69,7 +71,7 @@ namespace gutv_booker.Controllers
         // GET api/users/get_by_name/{namePart}
         [Authorize(Roles = "Admin")]
         [HttpGet("get_by_name/{namePart}")]
-        public async Task<ActionResult<IEnumerable<UserDtoNoAuth>>> GetUsersByName(string namePart)
+        public async Task<ActionResult<IEnumerable<UserNoAuthDto>>> GetUsersByName(string namePart)
         {
             var users = await _userService.GetUsersByName(namePart);
             if (!users.Any())
@@ -78,9 +80,9 @@ namespace gutv_booker.Controllers
             return Ok(users);
         }
 
-        // PUT api/users/ban/{id}
+        // PATCH api/users/ban/{id}
         [Authorize(Roles = "Admin")]
-        [HttpPut("ban/{id}")]
+        [HttpPatch("ban/{id}")]
         public async Task<ActionResult> BanUser(int id)
         {
             if (id <= 0)
@@ -93,9 +95,9 @@ namespace gutv_booker.Controllers
             return Ok($"Пользователь с ID {id} заблокирован");
         }
 
-        // PUT api/users/unban/{id}
+        // PATCH api/users/unban/{id}
         [Authorize(Roles = "Admin")]
-        [HttpPut("unban/{id}")]
+        [HttpPatch("unban/{id}")]
         public async Task<ActionResult> UnbanUser(int id)
         {
             if (id <= 0)
@@ -108,13 +110,26 @@ namespace gutv_booker.Controllers
             return Ok($"Пользователь с ID {id} разблокирован");
         }
 
-        // PUT api/users/make_admin/{id}
+        // PATCH api/users/make_admin/{id}
         [Authorize(Roles = "Admin")]
-        [HttpPut("make_admin/{id}")]
+        [HttpPatch("make_admin/{id}")]
         public async Task<ActionResult> MakeAdmin(int id)
         {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
+
+            var userId = int.Parse(userIdClaim.Value);
+
             if (id <= 0)
                 return BadRequest("Некорректный ID пользователя");
+
+            if (id == userId)
+            {
+                return BadRequest("Вы уже администратор");
+            }
 
             var success = await _userService.MakeAdmin(id);
             if (!success)
@@ -123,13 +138,26 @@ namespace gutv_booker.Controllers
             return Ok($"Пользователь с ID {id} теперь администратор");
         }
 
-        // PUT api/users/make_user/{id}
+        // PATCH api/users/make_user/{id}
         [Authorize(Roles = "Admin")]
-        [HttpPut("make_user/{id}")]
+        [HttpPatch("make_user/{id}")]
         public async Task<ActionResult> MakeUser(int id)
         {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
+
+            var userId = int.Parse(userIdClaim.Value);
+
             if (id <= 0)
                 return BadRequest("Некорректный ID пользователя");
+
+            if (id == userId)
+            {
+                return BadRequest("Вы не можете отобрать у себя права администратора");
+            }
 
             var success = await _userService.MakeUser(id);
             if (!success)

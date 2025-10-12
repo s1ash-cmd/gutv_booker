@@ -14,7 +14,7 @@ public class EquipmentService
     }
 
     public async Task<EquipmentType> CreateEquipmentType(string name, string description,
-        EquipmentType.EquipmentCategory category, string? attributesJson = null)
+        EquipmentType.EquipmentCategory category, bool osnova, string? attributesJson = null)
     {
         if (await _context.EquipmentTypes.AnyAsync(u => u.Name == name))
             throw new InvalidOperationException($"Оборудование '{name}' уже существует");
@@ -24,7 +24,9 @@ public class EquipmentService
             Name = name,
             Description = description,
             Category = category,
-            AttributesJson = attributesJson ?? "{}"
+            AttributesJson = attributesJson ?? "{}",
+            Osnova = osnova,
+            Ronin = name.Contains("Ronin", StringComparison.OrdinalIgnoreCase)
         };
 
         _context.EquipmentTypes.Add(equipmentType);

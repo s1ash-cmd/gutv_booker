@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -21,6 +22,11 @@ namespace gutv_booker.Models
         public string TelegramId { get; set; } = "";
         public UserRole Role { get; set; } = UserRole.User;
         public bool Banned { get; set; } = false;
+        [JsonIgnore]
+        [Column(TypeName = "timestamp without time zone")]
+        public DateOnly JoinDate { get; set; }
+        public bool Osnova {get; set;} = false;
+        public bool Ronin {get; set; } = false;
 
         [JsonIgnore] public string? RefreshToken { get; set; }
         [JsonIgnore] public DateTime? RefreshTokenExpiryTime { get; set; }
@@ -32,22 +38,5 @@ namespace gutv_booker.Models
             var hash = Convert.ToBase64String(hashBytes);
             return hash == PasswordHash;
         }
-    }
-
-    public class UserDtoNoAuth
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string TelegramId { get; set; } = "";
-        public User.UserRole Role { get; set; }
-        public bool Banned { get; set; }
-    }
-
-    public class CreateUserRequestDto
-    {
-        public string Login { get; set; } = "";
-        public string Password { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string TelegramId { get; set; } = "";
     }
 }

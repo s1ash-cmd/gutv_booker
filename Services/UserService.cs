@@ -15,7 +15,7 @@ public class UserService
         _context = context;
     }
 
-    private static UserDtoNoAuth ToDto(User user) => new UserDtoNoAuth
+    private static UserNoAuthDto ToDto(User user) => new UserNoAuthDto
     {
         Id = user.Id,
         Name = user.Name,
@@ -23,6 +23,12 @@ public class UserService
         Role = user.Role,
         Banned = user.Banned
     };
+
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task<User?> GetByLoginAsync(string login)
     {
@@ -47,8 +53,8 @@ public class UserService
                                       && u.RefreshTokenExpiryTime > DateTime.UtcNow);
     }
 
-    public async Task<UserDtoNoAuth> CreateUserAsync(string login, string password, string name, string telegramId = "",
-        User.UserRole role = User.UserRole.User)
+    public async Task<UserNoAuthDto> CreateUserAsync(string login, string password, string name, DateOnly joinDate,
+        string telegramId = "", bool ronin = false, User.UserRole role = User.UserRole.User)
     {
         if (await _context.Users.AnyAsync(u => u.Login.ToLower() == login.ToLower()))
             throw new InvalidOperationException($"Пользователь с логином '{login}' уже существует");
@@ -68,36 +74,40 @@ public class UserService
             Name = name,
             TelegramId = telegramId,
             Role = role,
-            Banned = false
+            Banned = false,
+            JoinDate = joinDate,
+            Ronin = ronin
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return new UserDtoNoAuth
+        return new UserNoAuthDto
         {
             Id = user.Id,
             Name = user.Name,
             TelegramId = user.TelegramId,
             Role = user.Role,
-            Banned = user.Banned
+            Banned = user.Banned,
+            Osnova = user.Osnova,
+            Ronin = user.Ronin
         };
     }
 
-    public async Task<List<UserDtoNoAuth>> GetAllUsers()
+    public async Task<List<UserNoAuthDto>> GetAllUsers()
     {
         var users = await _context.Users.ToListAsync();
         return users.Select(ToDto).ToList();
     }
 
-    public async Task<UserDtoNoAuth?> GetUserById(int id)
+    public async Task<UserNoAuthDto?> GetUserById(int id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) return null;
         return ToDto(user);
     }
 
-    public async Task<List<UserDtoNoAuth>> GetUsersByName(string namePart)
+    public async Task<List<UserNoAuthDto>> GetUsersByName(string namePart)
     {
         return await _context.Users
             .Where(u => u.Name.ToLower().Contains(namePart.ToLower()))

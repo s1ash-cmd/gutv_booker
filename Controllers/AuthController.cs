@@ -23,6 +23,16 @@ namespace gutv_booker.Controllers
             if (user == null || !user.CheckPassword(request.Password))
                 return Unauthorized("Неверный логин или пароль");
 
+            if (user.Banned)
+                return Unauthorized("Пользователь заблокирован");
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (!user.Osnova && user.JoinDate.AddYears(1) <= today)
+            {
+                user.Osnova = true;
+                await _userService.UpdateUserAsync(user);
+            }
+
             var accessToken = _authService.GenerateAccessToken(user);
             var refreshToken = _authService.GenerateRefreshToken();
 
@@ -30,6 +40,7 @@ namespace gutv_booker.Controllers
 
             return Ok(new { accessToken, refreshToken });
         }
+
 
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)

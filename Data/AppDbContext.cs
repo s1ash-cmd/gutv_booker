@@ -34,6 +34,12 @@ namespace gutv_booker.Data
                 .WithMany(b => b.BookingItems)
                 .HasForeignKey(bi => bi.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.JoinDate)
+                .HasConversion(
+                    v => v.ToDateTime(TimeOnly.MinValue),
+                    v => DateOnly.FromDateTime(v));
         }
     }
 }

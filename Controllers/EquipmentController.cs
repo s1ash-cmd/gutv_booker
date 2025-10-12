@@ -33,6 +33,7 @@ namespace gutv_booker.Controllers
                     equipmentType.Name,
                     equipmentType.Description,
                     equipmentType.Category,
+                    equipmentType.Osnova,
                     equipmentType.AttributesJson
                 );
                 return Ok(eqType);
@@ -55,6 +56,7 @@ namespace gutv_booker.Controllers
         }
 
         // GET api/equipment/get_type_by_id/{id}
+        [Authorize(Roles = "Admin")]
         [HttpGet("get_type_by_id/{id}")]
         public async Task<ActionResult<EquipmentType>> GetTypeById(int id)
         {

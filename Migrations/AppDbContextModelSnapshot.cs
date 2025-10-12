@@ -40,6 +40,10 @@ namespace gutv_booker.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -139,6 +143,12 @@ namespace gutv_booker.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("Osnova")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Ronin")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.ToTable("EquipmentTypes");
@@ -155,6 +165,9 @@ namespace gutv_booker.Migrations
                     b.Property<bool>("Banned")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime>("JoinDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Login")
                         .IsRequired()
                         .HasColumnType("text");
@@ -162,6 +175,9 @@ namespace gutv_booker.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("Osnova")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -175,6 +191,9 @@ namespace gutv_booker.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("Ronin")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Salt")
                         .IsRequired()
