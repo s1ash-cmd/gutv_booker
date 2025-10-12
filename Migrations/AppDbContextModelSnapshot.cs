@@ -40,9 +40,6 @@ namespace gutv_booker.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("EquipmentItemId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -54,7 +51,41 @@ namespace gutv_booker.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.BookingItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EquipmentItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsReturned")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("EquipmentItemId");
+
+                    b.ToTable("BookingItems");
                 });
 
             modelBuilder.Entity("gutv_booker.Models.EquipmentItem", b =>
@@ -76,6 +107,8 @@ namespace gutv_booker.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EquipmentTypeId");
 
                     b.HasIndex("InventoryNumber")
                         .IsUnique();
@@ -154,6 +187,57 @@ namespace gutv_booker.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.Booking", b =>
+                {
+                    b.HasOne("gutv_booker.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.BookingItem", b =>
+                {
+                    b.HasOne("gutv_booker.Models.Booking", "Booking")
+                        .WithMany("BookingItems")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("gutv_booker.Models.EquipmentItem", "EquipmentItem")
+                        .WithMany("BookingItems")
+                        .HasForeignKey("EquipmentItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("EquipmentItem");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.EquipmentItem", b =>
+                {
+                    b.HasOne("gutv_booker.Models.EquipmentType", "EquipmentType")
+                        .WithMany()
+                        .HasForeignKey("EquipmentTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EquipmentType");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.Booking", b =>
+                {
+                    b.Navigation("BookingItems");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.EquipmentItem", b =>
+                {
+                    b.Navigation("BookingItems");
                 });
 #pragma warning restore 612, 618
         }

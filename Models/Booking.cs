@@ -6,36 +6,58 @@
         {
             Pending,
             Approved,
-            Cancelled
+            Cancelled,
+            Rejected,
+            Completed
         }
 
         public int Id { get; set; }
 
         public int UserId { get; set; }
-        public int EquipmentItemId { get; set; }
-        public string Comment { get; set; } = string.Empty;
+        public User User { get; set; } = null!;
 
+        public string Comment { get; set; } = "";
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
 
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
-        public void ApproveBooking()
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
+        public List<BookingItem> BookingItems { get; set; } = new();
+
+
+        public class BookingItemDto
         {
-            Status = BookingStatus.Approved;
+            public int Id { get; set; }
+            public int EquipmentItemId { get; set; }
+            public string InventoryNumber { get; set; } = string.Empty;
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+            public bool IsReturned { get; set; }
         }
 
-        public void CancelBooking()
+        public class CreateBookingRequestDto
         {
-            Status = BookingStatus.Cancelled;
+            public int UserId { get; set; }
+            public string Comment { get; set; } = "";
+
+            public DateTime Start { get; set; }
+            public DateTime End { get; set; }
+
+            public List<int> EquipmentTypeIds { get; set; } = new();
         }
 
-        public bool ThreeDays()
+        public class BookingResponseDto
         {
-            return StartDate.Date >= DateTime.UtcNow.Date.AddDays(3);
+            public int Id { get; set; }
+            public int UserId { get; set; }
+            public string Comment { get; set; } = string.Empty;
+            public DateTime CreationDate { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+            public string Status { get; set; } = string.Empty;
+            public List<BookingItemDto> Items { get; set; } = new();
         }
-
-        public bool HasValidDates() => EndDate > StartDate;
     }
 }

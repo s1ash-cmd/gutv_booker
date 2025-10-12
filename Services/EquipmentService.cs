@@ -134,4 +134,17 @@ public class EquipmentService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<EquipmentItemDto> CreateEquipmentItemDto(int equipmentTypeId, bool available)
+    {
+        var item = await CreateEquipmentItem(equipmentTypeId, available);
+
+        return new EquipmentItemDto
+        {
+            Id = item.Id,
+            EquipmentTypeId = item.EquipmentTypeId,
+            InventoryNumber = item.InventoryNumber,
+            Available = item.Available
+        };
+    }
 }
