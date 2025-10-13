@@ -1,4 +1,6 @@
-﻿using gutv_booker.Services;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using gutv_booker.Services;
 using gutv_booker.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,21 +29,18 @@ namespace gutv_booker.Controllers
             if (!Enum.IsDefined(typeof(EquipmentType.EquipmentCategory), equipmentType.Category))
                 return BadRequest("Некорректная категория оборудования");
 
-            try
-            {
-                var eqType = await _equipmentService.CreateEquipmentType(
-                    equipmentType.Name,
-                    equipmentType.Description,
-                    equipmentType.Category,
-                    equipmentType.Osnova,
-                    equipmentType.AttributesJson
-                );
-                return Ok(eqType);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var (success, eqType) = await _equipmentService.CreateEquipmentType(
+                equipmentType.Name,
+                equipmentType.Description,
+                equipmentType.Category,
+                equipmentType.Osnova,
+                equipmentType.AttributesJson
+            );
+
+            if (!success || eqType == null)
+                return BadRequest("Не удалось создать оборудование");
+
+            return Ok(eqType);
         }
 
         // GET api/equipment/get_all_types
@@ -75,24 +74,41 @@ namespace gutv_booker.Controllers
         public async Task<ActionResult<List<EquipmentType>>> GetTypeByName(string namePart)
         {
             var eqTypes = await _equipmentService.GetEquipmentTypeByName(namePart);
-
             if (!eqTypes.Any())
                 return NotFound($"Оборудование с названием, содержащим '{namePart}', не найдено");
 
             return Ok(eqTypes);
         }
 
-        // GET api/equipment/get_type_by_category/category
+        // GET api/equipment/get_type_by_category/{category}
         [HttpGet("get_type_by_category/{category}")]
-        public async Task<ActionResult<List<EquipmentType>>> GetEquipmentTypeByCategory(
-            EquipmentType.EquipmentCategory category)
+        public async Task<ActionResult<List<EquipmentType>>> GetEquipmentTypeByCategory(EquipmentType.EquipmentCategory category)
         {
             var eqTypes = await _equipmentService.GetEquipmentTypeByCategory(category);
-
             if (!eqTypes.Any())
                 return NotFound($"Оборудование категории '{category}' не найдено");
 
             return Ok(eqTypes);
+        }
+
+        // GET api/equipment/get_available_to_me
+        [Authorize]
+        [HttpGet("get_available_to_me")]
+        public async Task<ActionResult<List<EquipmentType>>> GetAvailableToMe()
+        {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
+
+            var userId = int.Parse(userIdClaim.Value);
+            var types = await _equipmentService.GetAvailableToMe(userId);
+
+            if (!types.Any())
+                return NotFound("Доступных типов оборудования не найдено");
+
+            return Ok(types);
         }
 
         // PUT api/equipment/update_type/{id}
@@ -131,7 +147,6 @@ namespace gutv_booker.Controllers
             return Ok("Удаление прошло успешно");
         }
 
-
         // POST api/equipment/create_item
         [Authorize(Roles = "Admin")]
         [HttpPost("create_item")]
@@ -140,15 +155,12 @@ namespace gutv_booker.Controllers
             if (itemDto.EquipmentTypeId <= 0)
                 return BadRequest("Некорректный EquipmentTypeId");
 
-            try
-            {
-                var dto = await _equipmentService.CreateEquipmentItemDto(itemDto.EquipmentTypeId, itemDto.Available);
-                return Ok(dto);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var (success, dto) = await _equipmentService.CreateEquipmentItemDto(itemDto.EquipmentTypeId, itemDto.Available);
+
+            if (!success || dto == null)
+                return BadRequest("Не удалось создать предмет оборудования");
+
+            return Ok(dto);
         }
 
         // GET api/equipment/get_all_items

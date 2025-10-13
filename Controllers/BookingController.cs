@@ -23,23 +23,20 @@ namespace gutv_booker.Controllers
         [HttpPost("create_booking")]
         public async Task<ActionResult<BookingResponseDto>> CreateBooking([FromBody] CreateBookingRequestDto request)
         {
-            try
-            {
-                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                                  User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
 
-                if (userIdClaim == null)
-                    return Unauthorized("Пользователь не авторизован");
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
 
-                var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(userIdClaim.Value);
 
-                var bookingDto = await _bookingService.CreateBooking(request, userId);
-                return Ok(bookingDto);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var (success, booking, warnings) = await _bookingService.CreateBooking(request, userId);
+
+            if (!success || booking == null)
+                return BadRequest(new { error = warnings?.FirstOrDefault() ?? "Не удалось создать бронь" });
+
+            return Ok(booking);
         }
 
         // GET api/booking/{id}
@@ -47,15 +44,12 @@ namespace gutv_booker.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<BookingResponseDto>> GetBookingById(int id)
         {
-            try
-            {
-                var bookingDto = await _bookingService.GetBookingById(id);
-                return Ok(bookingDto);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
+            var (success, booking) = await _bookingService.GetBookingById(id);
+
+            if (!success || booking == null)
+                return NotFound(new { error = $"Бронь с Id {id} не найдена" });
+
+            return Ok(booking);
         }
 
         // GET api/booking/user/{userId}
@@ -63,15 +57,8 @@ namespace gutv_booker.Controllers
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<List<BookingResponseDto>>> GetBookingsByUser(int userId)
         {
-            try
-            {
-                var bookings = await _bookingService.GetBookingsByUser(userId);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var bookings = await _bookingService.GetBookingsByUser(userId);
+            return Ok(bookings);
         }
 
         // GET api/booking/user/me
@@ -79,23 +66,15 @@ namespace gutv_booker.Controllers
         [HttpGet("user/me")]
         public async Task<ActionResult<List<BookingResponseDto>>> GetMyBookings()
         {
-            try
-            {
-                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                                  User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
 
-                if (userIdClaim == null)
-                    return Unauthorized("Пользователь не авторизован");
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
 
-                var userId = int.Parse(userIdClaim.Value);
-
-                var bookings = await _bookingService.GetBookingsByUser(userId);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var userId = int.Parse(userIdClaim.Value);
+            var bookings = await _bookingService.GetBookingsByUser(userId);
+            return Ok(bookings);
         }
 
         // GET api/booking/equipment/{equipmentItemId}
@@ -103,15 +82,8 @@ namespace gutv_booker.Controllers
         [HttpGet("equipment/{equipmentItemId}")]
         public async Task<ActionResult<List<BookingResponseDto>>> GetBookingsByEquipmentItem(int equipmentItemId)
         {
-            try
-            {
-                var bookings = await _bookingService.GetBookingsByEquipmentItem(equipmentItemId);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var bookings = await _bookingService.GetBookingsByEquipmentItem(equipmentItemId);
+            return Ok(bookings);
         }
 
         // GET api/booking/status/{status}
@@ -119,18 +91,11 @@ namespace gutv_booker.Controllers
         [HttpGet("status/{status}")]
         public async Task<ActionResult<List<BookingResponseDto>>> GetBookingsByStatus(string status)
         {
-            try
-            {
-                if (!Enum.TryParse<Booking.BookingStatus>(status, true, out var bookingStatus))
-                    return BadRequest(new { error = "Неверный статус брони" });
+            if (!Enum.TryParse<Booking.BookingStatus>(status, true, out var bookingStatus))
+                return BadRequest(new { error = "Неверный статус брони" });
 
-                var bookings = await _bookingService.GetBookingsByStatus(bookingStatus);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var bookings = await _bookingService.GetBookingsByStatus(bookingStatus);
+            return Ok(bookings);
         }
 
         // GET api/booking/invnumber/{invNumber}
@@ -138,15 +103,8 @@ namespace gutv_booker.Controllers
         [HttpGet("invnumber/{invNumber}")]
         public async Task<ActionResult<List<BookingResponseDto>>> GetBookingsByInvNumber(string invNumber)
         {
-            try
-            {
-                var bookings = await _bookingService.GetBookingsByInventoryNumber(invNumber);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var bookings = await _bookingService.GetBookingsByInventoryNumber(invNumber);
+            return Ok(bookings);
         }
 
         // PATCH api/booking/approve/{id}
@@ -154,15 +112,10 @@ namespace gutv_booker.Controllers
         [HttpPatch("approve/{id}")]
         public async Task<ActionResult> ApproveBooking(int id)
         {
-            try
-            {
-                await _bookingService.ApproveBooking(id);
-                return Ok(new { message = "Бронь подтверждена" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var success = await _bookingService.ApproveBooking(id);
+            if (!success) return NotFound(new { error = $"Бронь с Id {id} не найдена" });
+
+            return Ok(new { message = "Бронь подтверждена" });
         }
 
         // PATCH api/booking/complete/{id}
@@ -170,15 +123,10 @@ namespace gutv_booker.Controllers
         [HttpPatch("complete/{id}")]
         public async Task<ActionResult> CompleteBooking(int id)
         {
-            try
-            {
-                await _bookingService.CompleteBooking(id);
-                return Ok(new { message = "Бронь завершена" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var success = await _bookingService.CompleteBooking(id);
+            if (!success) return NotFound(new { error = $"Бронь с Id {id} не найдена" });
+
+            return Ok(new { message = "Бронь завершена" });
         }
 
         // DELETE api/booking/cancel/{id}
@@ -186,28 +134,20 @@ namespace gutv_booker.Controllers
         [HttpDelete("cancel/{id}")]
         public async Task<ActionResult> CancelBooking(int id)
         {
-            try
-            {
-                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                                  User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                              User.FindFirst(ClaimTypes.NameIdentifier);
 
-                if (userIdClaim == null)
-                    return Unauthorized("Пользователь не авторизован");
+            if (userIdClaim == null)
+                return Unauthorized("Пользователь не авторизован");
 
-                var userId = int.Parse(userIdClaim.Value);
-                var isAdmin = User.IsInRole("Admin");
+            var userId = int.Parse(userIdClaim.Value);
+            var isAdmin = User.IsInRole("Admin");
 
-                await _bookingService.CancelBooking(id, userId, isAdmin);
-                return Ok(new { message = "Бронь отменена и удалена" });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return StatusCode(403, new { error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var success = await _bookingService.CancelBooking(id, userId, isAdmin);
+            if (!success)
+                return Forbid("Вы не можете удалить чужую бронь или бронь не найдена");
+
+            return Ok(new { message = "Бронь отменена и удалена" });
         }
     }
 }

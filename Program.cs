@@ -71,6 +71,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EquipmentService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<ReportService>();
 
 builder.Services.AddControllers();
 

@@ -38,5 +38,7 @@ namespace gutv_booker.Models
                 : JsonSerializer.Deserialize<Dictionary<string, object>>(AttributesJson)!;
             set => AttributesJson = JsonSerializer.Serialize(value);
         }
+
+        public List<EquipmentItem> EquipmentItems { get; set; } = new();
     }
 }

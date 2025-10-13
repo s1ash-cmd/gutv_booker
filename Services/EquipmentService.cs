@@ -13,11 +13,11 @@ public class EquipmentService
         _context = context;
     }
 
-    public async Task<EquipmentType> CreateEquipmentType(string name, string description,
+    public async Task<(bool Success, EquipmentType? Type)> CreateEquipmentType(string name, string description,
         EquipmentType.EquipmentCategory category, bool osnova, string? attributesJson = null)
     {
         if (await _context.EquipmentTypes.AnyAsync(u => u.Name == name))
-            throw new InvalidOperationException($"Оборудование '{name}' уже существует");
+            return (false, null);
 
         var equipmentType = new EquipmentType
         {
@@ -31,7 +31,8 @@ public class EquipmentService
 
         _context.EquipmentTypes.Add(equipmentType);
         await _context.SaveChangesAsync();
-        return equipmentType;
+
+        return (true, equipmentType);
     }
 
     public async Task<List<EquipmentType>> GetAllEquipmentTypes()
@@ -46,17 +47,30 @@ public class EquipmentService
 
     public async Task<List<EquipmentType>> GetEquipmentTypeByName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            return new List<EquipmentType>();
-
+        if (string.IsNullOrWhiteSpace(name)) return new List<EquipmentType>();
         name = name.ToLower();
-
         return await _context.EquipmentTypes.Where(u => u.Name.ToLower().Contains(name)).ToListAsync();
     }
 
     public async Task<List<EquipmentType>> GetEquipmentTypeByCategory(EquipmentType.EquipmentCategory category)
     {
         return await _context.EquipmentTypes.Where(e => e.Category == category).ToListAsync();
+    }
+
+    public async Task<List<EquipmentType>> GetAvailableToMe(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return new List<EquipmentType>();
+
+        IQueryable<EquipmentType> query = _context.EquipmentTypes.AsQueryable();
+
+        if (!user.Osnova)
+            query = query.Where(t => !t.Osnova);
+
+        if (!user.Ronin)
+            query = query.Where(t => !t.Ronin);
+
+        return await query.ToListAsync();
     }
 
     public async Task<bool> UpdateEquipmentType(int id, string? name = null, string? description = null,
@@ -85,18 +99,13 @@ public class EquipmentService
         return true;
     }
 
-
-    public async Task<EquipmentItem> CreateEquipmentItem(int equipmentTypeId, bool available)
+    public async Task<(bool Success, EquipmentItem? Item)> CreateEquipmentItem(int equipmentTypeId, bool available)
     {
         var equipmentType = await _context.EquipmentTypes.FirstOrDefaultAsync(et => et.Id == equipmentTypeId);
-
-        if (equipmentType == null)
-            throw new InvalidOperationException($"EquipmentType с Id {equipmentTypeId} не найден");
+        if (equipmentType == null) return (false, null);
 
         int categoryCode = (int)equipmentType.Category;
-
         var countForType = await _context.EquipmentItems.CountAsync(e => e.EquipmentTypeId == equipmentTypeId);
-
         var inventoryNumber = $"{categoryCode}-{equipmentTypeId + 0:D3}-{countForType + 1:D2}";
 
         var item = new EquipmentItem
@@ -109,7 +118,7 @@ public class EquipmentService
         _context.EquipmentItems.Add(item);
         await _context.SaveChangesAsync();
 
-        return item;
+        return (true, item);
     }
 
     public async Task<List<EquipmentItem>> GetAllEquipmentItems()
@@ -137,16 +146,17 @@ public class EquipmentService
         return true;
     }
 
-    public async Task<EquipmentItemDto> CreateEquipmentItemDto(int equipmentTypeId, bool available)
+    public async Task<(bool Success, EquipmentItemDto? ItemDto)> CreateEquipmentItemDto(int equipmentTypeId, bool available)
     {
-        var item = await CreateEquipmentItem(equipmentTypeId, available);
+        var (success, item) = await CreateEquipmentItem(equipmentTypeId, available);
+        if (!success || item == null) return (false, null);
 
-        return new EquipmentItemDto
+        return (true, new EquipmentItemDto
         {
             Id = item.Id,
             EquipmentTypeId = item.EquipmentTypeId,
             InventoryNumber = item.InventoryNumber,
             Available = item.Available
-        };
+        });
     }
 }

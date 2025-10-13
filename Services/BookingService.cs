@@ -13,7 +13,7 @@ public class BookingService
         _context = context;
     }
 
-    private async Task<EquipmentItem> GetAvailableItem(int equipmentTypeId, DateTime start, DateTime end,
+    private async Task<(bool Success, EquipmentItem? Item)> GetAvailableItem(int equipmentTypeId, DateTime start, DateTime end,
         HashSet<int> alreadySelectedIds)
     {
         var item = await _context.EquipmentItems
@@ -28,9 +28,9 @@ public class BookingService
             .FirstOrDefaultAsync();
 
         if (item == null)
-            throw new InvalidOperationException($"Нет доступных предметов для типа оборудования {equipmentTypeId}");
+            return (false, null);
 
-        return item;
+        return (true, item);
     }
 
     private async Task<List<BookingResponseDto>> BookingToDto(List<Booking> bookings, int? equipmentItemId = null)
@@ -41,7 +41,7 @@ public class BookingService
             .ToDictionaryAsync(e => e.Id);
 
         if (equipmentItems.Count == 0)
-            throw new InvalidOperationException("Не найдено оборудования для указанных броней");
+            return new List<BookingResponseDto>();
 
         return bookings.Select(b => new BookingResponseDto
         {
@@ -67,23 +67,20 @@ public class BookingService
         }).ToList();
     }
 
-    public async Task<BookingResponseDto> CreateBooking(CreateBookingRequestDto request, int userId)
+    public async Task<(bool Success, BookingResponseDto? Booking, List<string>? Warnings)> CreateBooking(CreateBookingRequestDto request, int userId)
     {
         var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-            throw new InvalidOperationException($"Пользователь с Id {userId} не найден");
+        if (user == null) return (false, null, new List<string> { $"Пользователь с Id {userId} не найден" });
 
         if (request.Start >= request.End)
-            throw new InvalidOperationException("Дата начала должна быть меньше даты окончания");
+            return (false, null, new List<string> { "Дата начала должна быть меньше даты окончания" });
 
         if (request.EquipmentTypeIds == null || !request.EquipmentTypeIds.Any())
-            throw new InvalidOperationException("Не указано оборудование для бронирования");
+            return (false, null, new List<string> { "Не указано оборудование для бронирования" });
 
         var warnings = new List<string>();
-
-        var minAdvanceDays = 3;
-        if ((request.Start - DateTime.UtcNow).TotalDays < minAdvanceDays)
-            warnings.Add($"Бронирование создаётся меньше чем за {minAdvanceDays} дня до начала");
+        if ((request.Start - DateTime.UtcNow).TotalDays < 3)
+            warnings.Add("Бронирование создаётся меньше чем за 3 дня до начала");
 
         var booking = new Booking
         {
@@ -92,7 +89,7 @@ public class BookingService
             StartDate = request.Start,
             EndDate = request.End,
             Status = Booking.BookingStatus.Pending,
-            Comment = request.Comment,
+            Comment = request.Comment
         };
 
         var selectedItemIds = new HashSet<int>();
@@ -105,7 +102,10 @@ public class BookingService
 
         foreach (var typeId in request.EquipmentTypeIds)
         {
-            var item = await GetAvailableItem(typeId, request.Start, request.End, selectedItemIds);
+            var (itemSuccess, item) = await GetAvailableItem(typeId, request.Start, request.End, selectedItemIds);
+            if (!itemSuccess || item == null)
+                return (false, null, new List<string> { $"Нет доступных предметов для типа оборудования {typeId}" });
+
             selectedItemIds.Add(item.Id);
 
             booking.BookingItems.Add(new BookingItem
@@ -118,11 +118,8 @@ public class BookingService
 
             if (equipmentTypes.TryGetValue(item.EquipmentTypeId, out var eqType))
             {
-                if (eqType.Osnova)
-                    hasOsnovaItem = true;
-
-                if (eqType.Ronin)
-                    hasRoninItem = true;
+                if (eqType.Osnova) hasOsnovaItem = true;
+                if (eqType.Ronin) hasRoninItem = true;
             }
         }
 
@@ -130,33 +127,30 @@ public class BookingService
             warnings.Add("В бронировании есть оборудование только для основы");
 
         if (hasRoninItem && !user.Ronin)
-            throw new InvalidOperationException("У вас нет разрешения на Ronin");
+            return (false, null, new List<string> { "У вас нет разрешения на Ronin" });
 
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
 
         var result = await BookingToDto(new List<Booking> { booking });
-        var response = result.First();
-        response.Warnings = warnings;
+        var response = result.FirstOrDefault();
+        if (response != null)
+            response.Warnings = warnings;
 
-        return response;
+        return (true, response, warnings);
     }
 
-
-    public async Task<BookingResponseDto> GetBookingById(int id)
+    public async Task<(bool Success, BookingResponseDto? Booking)> GetBookingById(int id)
     {
         var booking = await _context.Bookings
             .Include(b => b.BookingItems)
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (booking == null)
-            throw new InvalidOperationException($"Бронь с Id {id} не найдена");
-
-        if (!booking.BookingItems.Any())
-            throw new InvalidOperationException($"У брони с Id {id} нет связанных предметов");
+        if (booking == null || !booking.BookingItems.Any())
+            return (false, null);
 
         var result = await BookingToDto(new List<Booking> { booking });
-        return result.First();
+        return (true, result.FirstOrDefault());
     }
 
     public async Task<List<BookingResponseDto>> GetBookingsByUser(int userId)
@@ -165,9 +159,6 @@ public class BookingService
             .Where(b => b.UserId == userId)
             .Include(b => b.BookingItems)
             .ToListAsync();
-
-        if (!bookings.Any())
-            throw new InvalidOperationException($"Не найдено броней для пользователя с Id {userId}");
 
         return await BookingToDto(bookings);
     }
@@ -179,10 +170,7 @@ public class BookingService
             .Include(b => b.BookingItems)
             .ToListAsync();
 
-        if (!bookings.Any())
-            throw new InvalidOperationException($"Не найдено броней, содержащих предмет с Id {equipmentItemId}");
-
-        return await BookingToDto(bookings);
+        return await BookingToDto(bookings, equipmentItemId);
     }
 
     public async Task<List<BookingResponseDto>> GetBookingsByStatus(Booking.BookingStatus status)
@@ -192,69 +180,61 @@ public class BookingService
             .Include(b => b.BookingItems)
             .ToListAsync();
 
-        if (!bookings.Any())
-            throw new InvalidOperationException($"Не найдено броней со статусом {status}");
-
         return await BookingToDto(bookings);
     }
 
     public async Task<List<BookingResponseDto>> GetBookingsByInventoryNumber(string inventoryNumber)
     {
         if (string.IsNullOrWhiteSpace(inventoryNumber))
-            throw new InvalidOperationException("Инвентарный номер не может быть пустым");
+            return new List<BookingResponseDto>();
 
         var equipmentItem = await _context.EquipmentItems
             .FirstOrDefaultAsync(e => e.InventoryNumber.ToLower() == inventoryNumber.ToLower());
 
         if (equipmentItem == null)
-            throw new InvalidOperationException($"Оборудование с инвентарным номером '{inventoryNumber}' не найдено");
+            return new List<BookingResponseDto>();
 
         var bookings = await _context.Bookings
             .Where(b => b.BookingItems.Any(bi => bi.EquipmentItemId == equipmentItem.Id))
             .Include(b => b.BookingItems)
             .ToListAsync();
 
-        if (!bookings.Any())
-            throw new InvalidOperationException($"Не найдено броней, связанных с предметом '{inventoryNumber}'");
-
         return await BookingToDto(bookings, equipmentItem.Id);
     }
 
-    public async Task ApproveBooking(int bookingId)
+    public async Task<bool> ApproveBooking(int bookingId)
     {
         var booking = await _context.Bookings.FindAsync(bookingId);
-        if (booking == null)
-            throw new InvalidOperationException($"Бронь с Id {bookingId} не найдена");
+        if (booking == null) return false;
 
         booking.Status = Booking.BookingStatus.Approved;
         await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task CancelBooking(int bookingId, int currentUserId, bool isAdmin)
+    public async Task<bool> CancelBooking(int bookingId, int currentUserId, bool isAdmin)
     {
         var booking = await _context.Bookings
             .Include(b => b.BookingItems)
             .FirstOrDefaultAsync(b => b.Id == bookingId);
 
-        if (booking == null)
-            throw new InvalidOperationException($"Бронь с Id {bookingId} не найдена");
-
-        if (!isAdmin && booking.UserId != currentUserId)
-            throw new UnauthorizedAccessException("Вы не можете удалить чужую бронь");
+        if (booking == null) return false;
+        if (!isAdmin && booking.UserId != currentUserId) return false;
 
         _context.BookingItems.RemoveRange(booking.BookingItems);
         _context.Bookings.Remove(booking);
 
         await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task CompleteBooking(int bookingId)
+    public async Task<bool> CompleteBooking(int bookingId)
     {
         var booking = await _context.Bookings.FindAsync(bookingId);
-        if (booking == null)
-            throw new InvalidOperationException($"Бронь с Id {bookingId} не найдена");
+        if (booking == null) return false;
 
         booking.Status = Booking.BookingStatus.Completed;
         await _context.SaveChangesAsync();
+        return true;
     }
 }
