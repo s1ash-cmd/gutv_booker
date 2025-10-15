@@ -26,10 +26,9 @@ namespace gutv_booker.Controllers
             if (user.Banned)
                 return Unauthorized("Пользователь заблокирован");
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            if (!user.Osnova && user.JoinDate.AddYears(1) <= today)
+            if (user.Role == Models.User.UserRole.User && user.JoinYear + 1 <= DateTime.UtcNow.Year)
             {
-                user.Osnova = true;
+                user.Role = Models.User.UserRole.Osnova;
                 await _userService.UpdateUserAsync(user);
             }
 
@@ -40,6 +39,7 @@ namespace gutv_booker.Controllers
 
             return Ok(new { accessToken, refreshToken });
         }
+
 
 
         [HttpPost("refresh")]

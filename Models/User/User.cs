@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -11,6 +10,8 @@ namespace gutv_booker.Models
         public enum UserRole
         {
             User,
+            Osnova,
+            Ronin,
             Admin
         }
 
@@ -19,17 +20,18 @@ namespace gutv_booker.Models
         public string PasswordHash { get; set; } = "";
         public string Salt { get; set; } = "";
         public string Name { get; set; } = "";
-        public string TelegramId { get; set; } = "";
+        public string? TelegramId { get; set; }
         public UserRole Role { get; set; } = UserRole.User;
-        public bool Banned { get; set; } = false;
-        [JsonIgnore]
-        [Column(TypeName = "timestamp without time zone")]
-        public DateOnly JoinDate { get; set; }
-        public bool Osnova {get; set;} = false;
-        public bool Ronin {get; set; } = false;
+        public bool Banned { get; set; }
 
-        [JsonIgnore] public string? RefreshToken { get; set; }
-        [JsonIgnore] public DateTime? RefreshTokenExpiryTime { get; set; }
+        [JsonIgnore]
+        public int JoinYear { get; set; }
+
+        [JsonIgnore]
+        public string? RefreshToken { get; set; }
+
+        [JsonIgnore]
+        public DateTime? RefreshTokenExpiryTime { get; set; }
 
         public bool CheckPassword(string password)
         {

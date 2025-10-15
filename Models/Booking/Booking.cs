@@ -5,6 +5,7 @@
         public enum BookingStatus
         {
             Pending,
+            Cancelled,
             Approved,
             Completed
         }
@@ -24,5 +25,6 @@
 
         public List<BookingItem> BookingItems { get; set; } = new();
         public string Comment { get; set; } = "";
+        public string? AdminComment { get; set; }
     }
 }

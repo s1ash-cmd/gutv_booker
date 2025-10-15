@@ -6,7 +6,7 @@ namespace gutv_booker.Data
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<EquipmentType> EquipmentTypes { get; set; }
+        public DbSet<EquipmentModel> EquipmentModels { get; set; }
         public DbSet<EquipmentItem> EquipmentItems { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingItem> BookingItems { get; set; }
@@ -34,12 +34,6 @@ namespace gutv_booker.Data
                 .WithMany(b => b.BookingItems)
                 .HasForeignKey(bi => bi.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<User>()
-                .Property(u => u.JoinDate)
-                .HasConversion(
-                    v => v.ToDateTime(TimeOnly.MinValue),
-                    v => DateOnly.FromDateTime(v));
         }
     }
 }
