@@ -3,7 +3,7 @@
     public class EquipmentItem
     {
         public int Id { get; set; }
-        public int EquipmentTypeId { get; set; }
+        public int EquipmentModelId { get; set; }
 
         public EquipmentModel EquipmentModel { get; set; } = null!;
 

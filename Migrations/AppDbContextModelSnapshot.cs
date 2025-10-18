@@ -30,6 +30,9 @@ namespace gutv_booker.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AdminComment")
+                        .HasColumnType("text");
+
                     b.Property<string>("Comment")
                         .IsRequired()
                         .HasColumnType("text");
@@ -103,7 +106,7 @@ namespace gutv_booker.Migrations
                     b.Property<bool>("Available")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("EquipmentTypeId")
+                    b.Property<int>("EquipmentModelId")
                         .HasColumnType("integer");
 
                     b.Property<string>("InventoryNumber")
@@ -112,7 +115,7 @@ namespace gutv_booker.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentTypeId");
+                    b.HasIndex("EquipmentModelId");
 
                     b.HasIndex("InventoryNumber")
                         .IsUnique();
@@ -120,13 +123,16 @@ namespace gutv_booker.Migrations
                     b.ToTable("EquipmentItems");
                 });
 
-            modelBuilder.Entity("gutv_booker.Models.EquipmentType", b =>
+            modelBuilder.Entity("gutv_booker.Models.EquipmentModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Access")
+                        .HasColumnType("integer");
 
                     b.Property<string>("AttributesJson")
                         .IsRequired()
@@ -143,15 +149,9 @@ namespace gutv_booker.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Osnova")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Ronin")
-                        .HasColumnType("boolean");
-
                     b.HasKey("Id");
 
-                    b.ToTable("EquipmentTypes");
+                    b.ToTable("EquipmentModels");
                 });
 
             modelBuilder.Entity("gutv_booker.Models.User", b =>
@@ -165,8 +165,8 @@ namespace gutv_booker.Migrations
                     b.Property<bool>("Banned")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("JoinDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<int>("JoinYear")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Login")
                         .IsRequired()
@@ -175,9 +175,6 @@ namespace gutv_booker.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("Osnova")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -192,15 +189,11 @@ namespace gutv_booker.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("Ronin")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Salt")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("TelegramId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -240,13 +233,13 @@ namespace gutv_booker.Migrations
 
             modelBuilder.Entity("gutv_booker.Models.EquipmentItem", b =>
                 {
-                    b.HasOne("gutv_booker.Models.EquipmentType", "EquipmentType")
-                        .WithMany()
-                        .HasForeignKey("EquipmentTypeId")
+                    b.HasOne("gutv_booker.Models.EquipmentModel", "EquipmentModel")
+                        .WithMany("EquipmentItems")
+                        .HasForeignKey("EquipmentModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("EquipmentType");
+                    b.Navigation("EquipmentModel");
                 });
 
             modelBuilder.Entity("gutv_booker.Models.Booking", b =>
@@ -257,6 +250,11 @@ namespace gutv_booker.Migrations
             modelBuilder.Entity("gutv_booker.Models.EquipmentItem", b =>
                 {
                     b.Navigation("BookingItems");
+                });
+
+            modelBuilder.Entity("gutv_booker.Models.EquipmentModel", b =>
+                {
+                    b.Navigation("EquipmentItems");
                 });
 #pragma warning restore 612, 618
         }

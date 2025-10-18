@@ -20,7 +20,7 @@ public class UserService
         Id = user.Id,
         Name = user.Name,
         TelegramId = user.TelegramId,
-        Role = user.Role,
+        Role = user.Role.ToString(),
         Banned = user.Banned
     };
 

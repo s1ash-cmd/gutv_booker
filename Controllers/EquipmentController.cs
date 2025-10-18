@@ -27,9 +27,9 @@ namespace gutv_booker.Controllers
             return int.Parse(userIdClaim.Value);
         }
 
-        // POST api/equipment/create_type
+        // POST api/equipment/create_model
         [Authorize(Roles = "Admin")]
-        [HttpPost("create_type")]
+        [HttpPost("create_model")]
         public async Task<ActionResult<EqModelResponseDto>> CreateEquipmentType(
             [FromBody] CreateEqModelRequestDto equipmentModel)
         {
@@ -51,16 +51,17 @@ namespace gutv_booker.Controllers
             }
         }
 
-        // POST api/equipment/get_all
-        [HttpGet("get_all")]
+        // POST api/equipment/get_all_models
+        [HttpGet("get_all_models")]
         public async Task<ActionResult<List<EqModelResponseDto>>> GetAllEquipmentModels()
         {
             var eqModels = await _equipmentService.GetAllEquipmentModels();
             return Ok(eqModels);
         }
 
-        // POST api/equipment/get_by_id/{id}
-        [HttpGet("get_by_id/{id}")]
+        // POST api/equipment/get_model_by_id/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpGet("get_model_by_id/{id}")]
         public async Task<ActionResult<EqModelResponseDto>> GetEquipmentModelById(int id)
         {
             var eqModel = await _equipmentService.GetEquipmentModelById(id);
@@ -70,8 +71,8 @@ namespace gutv_booker.Controllers
             return Ok(eqModel);
         }
 
-        // GET api/equipment/get_by_name/{name}
-        [HttpGet("get_by_name/{name}")]
+        // GET api/equipment/get_model_by_name/{name}
+        [HttpGet("get_model_by_name/{name}")]
         public async Task<ActionResult<List<EqModelResponseDto>>> GetEquipmentModelByName(string name)
         {
             var eqModels = await _equipmentService.GetEquipmentModelByName(name);
@@ -81,8 +82,8 @@ namespace gutv_booker.Controllers
             return Ok(eqModels);
         }
 
-        // GET api/equipment/get_by_category/{category}
-        [HttpGet("get_by_category/{category}")]
+        // GET api/equipment/get_model_by_category/{category}
+        [HttpGet("get_model_by_category/{category}")]
         public async Task<ActionResult<List<EqModelResponseDto>>> GetEquipmentModelByCategory(
             EquipmentModel.EquipmentCategory category)
         {
@@ -93,9 +94,9 @@ namespace gutv_booker.Controllers
             return Ok(eqModels);
         }
 
-        // GET api/equipment/available_to_me
+        // GET api/equipment/available_models_to_me
         [Authorize]
-        [HttpGet("available_to_me")]
+        [HttpGet("available_models_to_me")]
         public async Task<ActionResult<List<EqModelResponseDto>>> GetAvailableToMe()
         {
             try
@@ -110,9 +111,9 @@ namespace gutv_booker.Controllers
             }
         }
 
-        // PUT api/equipment/update/{id}
+        // PUT api/equipment/update_model/{id}
         [Authorize(Roles = "Admin")]
-        [HttpPut("update/{id}")]
+        [HttpPut("update_model/{id}")]
         public async Task<ActionResult> UpdateEquipmentModel(int id, [FromBody] CreateEqModelRequestDto eqModel)
         {
             if (string.IsNullOrWhiteSpace(eqModel.Name))
@@ -133,6 +134,44 @@ namespace gutv_booker.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        // DELETE api/equipment/delete_model/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("delete_model/{id}")]
+        public async Task<ActionResult> DeleteEquipmentModel(int id)
+        {
+            if (id <= 0) return BadRequest("ID должен быть больше нуля");
+
+            var success = await _equipmentService.DeleteEquipmentModel(id);
+            if (!success) return NotFound($"Оборудование с ID {id} не найдено");
+
+            return Ok("Удаление прошло успешно");
+        }
+
+
+        // POST api/equipment/create_item
+        [Authorize(Roles = "Admin")]
+        [HttpPost("create_item")]
+        public async Task<ActionResult<EqItemResponseDto>> CreateEquipmentItem(int equipmentModelId)
+        {
+            try
+            {
+                var item = await _equipmentService.CreateEquipmentItem(equipmentModelId);
+                return Ok(item);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // GET: api/equipment
+        [HttpGet("get_all_items")]
+        public async Task<ActionResult<List<EqItemResponseDto>>> GetAllEquipmentItems()
+        {
+            var items = await _equipmentService.GetAllEquipmentItems();
+            return Ok(items);
         }
     }
 }

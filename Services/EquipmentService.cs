@@ -20,8 +20,7 @@ public class EquipmentService
         Description = eqModel.Description,
         Category = eqModel.Category,
         Access = eqModel.Access,
-        Attributes = eqModel.Attributes,
-        EquipmentItemsCount = eqModel.EquipmentItems?.Count ?? 0
+        Attributes = eqModel.Attributes
     };
 
     public EquipmentModel CreateDtoToEqModel(CreateEqModelRequestDto eqModel)
@@ -145,4 +144,66 @@ public class EquipmentService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> DeleteEquipmentModel(int id)
+    {
+        var eqModel = await _context.EquipmentModels.FindAsync(id);
+        if (eqModel == null) return false;
+
+        _context.EquipmentModels.Remove(eqModel);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+
+
+
+    public EqItemResponseDto EqItemToResponseDto(EquipmentItem item)
+    {
+        return new EqItemResponseDto
+        {
+            Id = item.Id,
+            InventoryNumber = item.InventoryNumber,
+            Available = item.Available,
+            TypeName = item.EquipmentModel.Name,
+            TypeCategory = item.EquipmentModel.Category.ToString()
+        };
+    }
+
+    public async Task<EqItemResponseDto> CreateEquipmentItem(int equipmentModelId)
+    {
+        var model = await _context.EquipmentModels
+            .FirstOrDefaultAsync(m => m.Id == equipmentModelId);
+
+        if (model == null)
+            throw new InvalidOperationException("Модель оборудования не найдена");
+
+        int categoryCode = (int)model.Category;
+        var countForType = await _context.EquipmentItems.CountAsync(e => e.EquipmentModelId == equipmentModelId);
+        var inventoryNumber = $"{categoryCode}-{equipmentModelId:D3}-{countForType + 1:D2}";
+
+        var newItem = new EquipmentItem
+        {
+            EquipmentModelId = equipmentModelId,
+            InventoryNumber = inventoryNumber,
+            Available = true,
+            EquipmentModel = model
+        };
+
+        _context.EquipmentItems.Add(newItem);
+        await _context.SaveChangesAsync();
+
+        return EqItemToResponseDto(newItem);
+    }
+
+    public async Task<List<EqItemResponseDto>> GetAllEquipmentItems()
+    {
+        var items = await _context.EquipmentItems
+            .Include(e => e.EquipmentModel)
+            .ToListAsync();
+
+        return items.Select(EqItemToResponseDto).ToList();
+    }
+
+
 }
