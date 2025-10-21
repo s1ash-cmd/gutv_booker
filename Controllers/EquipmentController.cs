@@ -166,7 +166,7 @@ namespace gutv_booker.Controllers
             }
         }
 
-        // GET: api/equipment/get_all_items
+        // GET api/equipment/get_all_items
         [HttpGet("get_all_items")]
         public async Task<ActionResult<List<EqItemResponseDto>>> GetAllEquipmentItems()
         {
@@ -174,7 +174,7 @@ namespace gutv_booker.Controllers
             return Ok(items);
         }
 
-        // GET: api/equipment/get_items_by_id
+        // GET api/equipment/get_items_by_id
         [HttpGet("get_items_by_id")]
         public async Task<ActionResult<EqItemResponseDto>> GetEquipmentItemById(int id)
         {
@@ -192,6 +192,19 @@ namespace gutv_booker.Controllers
                 return NotFound($"Нет элементов оборудования с моделью ID = {modelId}");
 
             return Ok(items);
+        }
+
+        // DELETE api/equipment/delete_item/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("delete_item/{id}")]
+        public async Task<ActionResult> DeleteEquipmentItem(int id)
+        {
+            if (id <= 0) return BadRequest("ID должен быть больше нуля");
+
+            var success = await _equipmentService.DeleteEquipmentItem(id);
+            if (!success) return NotFound($"Оборудование с ID {id} не найдено");
+
+            return Ok("Удаление прошло успешно");
         }
     }
 }

@@ -156,8 +156,6 @@ public class EquipmentService
     }
 
 
-
-
     public EqItemResponseDto EqItemToResponseDto(EquipmentItem item)
     {
         return new EqItemResponseDto
@@ -225,5 +223,15 @@ public class EquipmentService
             .ToListAsync();
 
         return items.Select(EqItemToResponseDto).ToList();
+    }
+
+    public async Task<bool> DeleteEquipmentItem(int id)
+    {
+        var equipmentItem = await _context.EquipmentItems.FindAsync(id);
+        if (equipmentItem == null) return false;
+
+        _context.EquipmentItems.Remove(equipmentItem);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
