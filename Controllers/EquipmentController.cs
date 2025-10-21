@@ -166,11 +166,31 @@ namespace gutv_booker.Controllers
             }
         }
 
-        // GET: api/equipment
+        // GET: api/equipment/get_all_items
         [HttpGet("get_all_items")]
         public async Task<ActionResult<List<EqItemResponseDto>>> GetAllEquipmentItems()
         {
             var items = await _equipmentService.GetAllEquipmentItems();
+            return Ok(items);
+        }
+
+        // GET: api/equipment/get_items_by_id
+        [HttpGet("get_items_by_id")]
+        public async Task<ActionResult<EqItemResponseDto>> GetEquipmentItemById(int id)
+        {
+            var items = await _equipmentService.GetEquipmentItemById(id);
+            return Ok(items);
+        }
+
+        // GET: api/equipment/get_items_by_model
+        [HttpGet("get_items_by_model")]
+        public async Task<ActionResult<List<EqItemResponseDto>>> GetEquipmentItemByModel(int modelId)
+        {
+            var items = await _equipmentService.GetEquipmentItemsByModel(modelId);
+
+            if (!items.Any())
+                return NotFound($"Нет элементов оборудования с моделью ID = {modelId}");
+
             return Ok(items);
         }
     }

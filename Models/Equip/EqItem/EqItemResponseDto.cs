@@ -6,7 +6,7 @@
         public string InventoryNumber { get; set; } = "";
         public bool Available { get; set; }
 
-        public string? TypeName { get; set; }
+        public string? ModelName { get; set; }
         public string? TypeCategory { get; set; }
     }
 }

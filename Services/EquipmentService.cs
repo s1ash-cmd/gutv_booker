@@ -165,7 +165,7 @@ public class EquipmentService
             Id = item.Id,
             InventoryNumber = item.InventoryNumber,
             Available = item.Available,
-            TypeName = item.EquipmentModel.Name,
+            ModelName = item.EquipmentModel.Name,
             TypeCategory = item.EquipmentModel.Category.ToString()
         };
     }
@@ -205,5 +205,25 @@ public class EquipmentService
         return items.Select(EqItemToResponseDto).ToList();
     }
 
+    public async Task<EqItemResponseDto?> GetEquipmentItemById(int id)
+    {
+        var item = await _context.EquipmentItems
+            .Include(e => e.EquipmentModel)
+            .FirstOrDefaultAsync(e => e.Id == id);
 
+        if (item == null)
+            return null;
+
+        return EqItemToResponseDto(item);
+    }
+
+    public async Task<List<EqItemResponseDto>> GetEquipmentItemsByModel(int equipmentModelId)
+    {
+        var items = await _context.EquipmentItems
+            .Include(e => e.EquipmentModel)
+            .Where(e => e.EquipmentModelId == equipmentModelId)
+            .ToListAsync();
+
+        return items.Select(EqItemToResponseDto).ToList();
+    }
 }
