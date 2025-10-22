@@ -78,6 +78,9 @@ public class UserService
 
         var user = CreateDtoToUser(request);
 
+        if (!await _context.Users.AnyAsync())
+            user.Role = User.UserRole.Admin;
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
