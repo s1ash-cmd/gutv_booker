@@ -15,15 +15,6 @@ public class UserService
         _context = context;
     }
 
-    public static UserResponseDto UserToResponseDto(User user) => new UserResponseDto
-    {
-        Id = user.Id,
-        Name = user.Name,
-        TelegramId = user.TelegramId,
-        Role = user.Role.ToString(),
-        Banned = user.Banned
-    };
-
     private User CreateDtoToUser(CreateUserRequestDto request)
     {
         var saltBytes = RandomNumberGenerator.GetBytes(16);
@@ -43,6 +34,15 @@ public class UserService
             JoinYear = request.JoinYear
         };
     }
+
+    public static UserResponseDto UserToResponseDto(User user) => new UserResponseDto
+    {
+        Id = user.Id,
+        Name = user.Name,
+        TelegramId = user.TelegramId,
+        Role = user.Role.ToString(),
+        Banned = user.Banned
+    };
 
     public async Task UpdateUserAsync(User user)
     {
