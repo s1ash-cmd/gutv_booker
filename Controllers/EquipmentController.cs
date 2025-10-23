@@ -24,14 +24,16 @@ namespace gutv_booker.Controllers
             var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                               User.FindFirst(ClaimTypes.NameIdentifier);
 
+            if (userIdClaim == null)
+                throw new UnauthorizedAccessException("Не удалось получить идентификатор пользователя из токена");
+
             return int.Parse(userIdClaim.Value);
         }
 
         // POST api/equipment/create_model
         [Authorize(Roles = "Admin")]
         [HttpPost("create_model")]
-        public async Task<ActionResult<EqModelResponseDto>> CreateEquipmentType(
-            [FromBody] CreateEqModelRequestDto equipmentModel)
+        public async Task<ActionResult<EqModelResponseDto>> CreateEquipmentModel([FromBody] CreateEqModelRequestDto equipmentModel)
         {
             if (string.IsNullOrWhiteSpace(equipmentModel.Name))
                 return BadRequest("Название оборудования не может быть пустым");
@@ -41,9 +43,8 @@ namespace gutv_booker.Controllers
 
             try
             {
-                var eqType = await _equipmentService.CreateEquipmentModel(equipmentModel);
-
-                return Ok(eqType);
+                var eqModel = await _equipmentService.CreateEquipmentModel(equipmentModel);
+                return Ok(eqModel);
             }
             catch (InvalidOperationException ex)
             {
@@ -51,7 +52,7 @@ namespace gutv_booker.Controllers
             }
         }
 
-        // POST api/equipment/get_all_models
+        // GET api/equipment/get_all_models
         [HttpGet("get_all_models")]
         public async Task<ActionResult<List<EqModelResponseDto>>> GetAllEquipmentModels()
         {
@@ -59,8 +60,7 @@ namespace gutv_booker.Controllers
             return Ok(eqModels);
         }
 
-        // POST api/equipment/get_model_by_id/{id}
-        [Authorize(Roles = "Admin")]
+        // GET api/equipment/get_model_by_id/{id}
         [HttpGet("get_model_by_id/{id}")]
         public async Task<ActionResult<EqModelResponseDto>> GetEquipmentModelById(int id)
         {
@@ -84,12 +84,11 @@ namespace gutv_booker.Controllers
 
         // GET api/equipment/get_model_by_category/{category}
         [HttpGet("get_model_by_category/{category}")]
-        public async Task<ActionResult<List<EqModelResponseDto>>> GetEquipmentModelByCategory(
-            EquipmentModel.EquipmentCategory category)
+        public async Task<ActionResult<List<EqModelResponseDto>>> GetEquipmentModelByCategory(EquipmentModel.EquipmentCategory category)
         {
             var eqModels = await _equipmentService.GetEquipmentModelByCategory(category);
             if (!eqModels.Any())
-                return NotFound($"Оборудование из этой категории не найдено");
+                return NotFound($"Оборудование из категории {category} не найдено");
 
             return Ok(eqModels);
         }
@@ -124,15 +123,16 @@ namespace gutv_booker.Controllers
 
             try
             {
-                var success = await _equipmentService.UpdateEquipmentModel(id, eqModel);
-                if (!success)
-                    return NotFound($"Оборудование с Id {id} не найдено");
-
+                await _equipmentService.UpdateEquipmentModel(id, eqModel);
                 return Ok("Оборудование успешно обновлено");
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
             }
         }
 
@@ -143,17 +143,21 @@ namespace gutv_booker.Controllers
         {
             if (id <= 0) return BadRequest("ID должен быть больше нуля");
 
-            var success = await _equipmentService.DeleteEquipmentModel(id);
-            if (!success) return NotFound($"Оборудование с ID {id} не найдено");
-
-            return Ok("Удаление прошло успешно");
+            try
+            {
+                await _equipmentService.DeleteEquipmentModel(id);
+                return Ok("Удаление прошло успешно");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-
-        // POST api/equipment/create_item
+        // POST api/equipment/create_item?equipmentModelId=3
         [Authorize(Roles = "Admin")]
         [HttpPost("create_item")]
-        public async Task<ActionResult<EqItemResponseDto>> CreateEquipmentItem(int equipmentModelId)
+        public async Task<ActionResult<EqItemResponseDto>> CreateEquipmentItem([FromQuery] int equipmentModelId)
         {
             try
             {
@@ -174,24 +178,37 @@ namespace gutv_booker.Controllers
             return Ok(items);
         }
 
-        // GET api/equipment/get_items_by_id
-        [HttpGet("get_items_by_id")]
+        // GET api/equipment/get_item_by_id/{id}
+        [HttpGet("get_item_by_id/{id}")]
         public async Task<ActionResult<EqItemResponseDto>> GetEquipmentItemById(int id)
         {
-            var items = await _equipmentService.GetEquipmentItemById(id);
-            return Ok(items);
+            try
+            {
+                var item = await _equipmentService.GetEquipmentItemById(id);
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        // GET: api/equipment/get_items_by_model
-        [HttpGet("get_items_by_model")]
-        public async Task<ActionResult<List<EqItemResponseDto>>> GetEquipmentItemByModel(int modelId)
+        // GET api/equipment/get_items_by_model/{modelId}
+        [HttpGet("get_items_by_model/{modelId}")]
+        public async Task<ActionResult<List<EqItemResponseDto>>> GetEquipmentItemsByModel(int modelId)
         {
-            var items = await _equipmentService.GetEquipmentItemsByModel(modelId);
+            try
+            {
+                var items = await _equipmentService.GetEquipmentItemsByModel(modelId);
+                if (!items.Any())
+                    return NotFound($"Нет элементов оборудования с моделью ID = {modelId}");
 
-            if (!items.Any())
-                return NotFound($"Нет элементов оборудования с моделью ID = {modelId}");
-
-            return Ok(items);
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         // DELETE api/equipment/delete_item/{id}
@@ -199,10 +216,12 @@ namespace gutv_booker.Controllers
         [HttpDelete("delete_item/{id}")]
         public async Task<ActionResult> DeleteEquipmentItem(int id)
         {
-            if (id <= 0) return BadRequest("ID должен быть больше нуля");
+            if (id <= 0)
+                return BadRequest("ID должен быть больше нуля");
 
             var success = await _equipmentService.DeleteEquipmentItem(id);
-            if (!success) return NotFound($"Оборудование с ID {id} не найдено");
+            if (!success)
+                return NotFound($"Оборудование с ID {id} не найдено");
 
             return Ok("Удаление прошло успешно");
         }

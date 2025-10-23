@@ -1,5 +1,6 @@
 ﻿using gutv_booker.Data;
 using gutv_booker.Models;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 
 namespace gutv_booker.Services;
@@ -122,14 +123,17 @@ public class EquipmentService
         return eqModels.Select(EqModelToResponseDto).ToList();
     }
 
-    public async Task<bool> UpdateEquipmentModel(int id, CreateEqModelRequestDto eqModel)
+    public async Task UpdateEquipmentModel(int id, CreateEqModelRequestDto eqModel)
     {
+        if (id <= 0) throw new ArgumentException("ID должен быть положительным.", nameof(id));
+        if (eqModel == null) throw new ArgumentNullException(nameof(eqModel));
+
         var existingModel = await _context.EquipmentModels.FindAsync(id);
         if (existingModel == null)
-            return false;
+            throw new Exception($"Модель оборудования с ID {id} не найдена");
 
         var nameExists = await _context.EquipmentModels
-            .AnyAsync(eq => eq.Id != id && EF.Functions.ILike(eq.Name, eqModel.Name));
+            .AnyAsync(eq => eq.Id != id && EF.Functions.ILike(eq.Name, eqModel.Name.Trim()));
         if (nameExists)
             throw new InvalidOperationException("Оборудование с таким названием уже существует");
 
@@ -142,17 +146,16 @@ public class EquipmentService
         existingModel.Access = updatedModel.Access;
 
         await _context.SaveChangesAsync();
-        return true;
     }
 
-    public async Task<bool> DeleteEquipmentModel(int id)
+    public async Task DeleteEquipmentModel(int id)
     {
         var eqModel = await _context.EquipmentModels.FindAsync(id);
-        if (eqModel == null) return false;
+        if (eqModel == null)
+            throw new Exception($"Модель оборудования с ID {id} не найдена");
 
         _context.EquipmentModels.Remove(eqModel);
         await _context.SaveChangesAsync();
-        return true;
     }
 
 
@@ -210,13 +213,17 @@ public class EquipmentService
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (item == null)
-            return null;
+            throw new Exception($"Экземпляр оборудования с ID {id} не найден");
 
         return EqItemToResponseDto(item);
     }
 
     public async Task<List<EqItemResponseDto>> GetEquipmentItemsByModel(int equipmentModelId)
     {
+        var exists = await _context.EquipmentModels.AnyAsync(m => m.Id == equipmentModelId);
+        if (!exists)
+            throw new Exception($"Модель оборудования с ID {equipmentModelId} не найдена");
+
         var items = await _context.EquipmentItems
             .Include(e => e.EquipmentModel)
             .Where(e => e.EquipmentModelId == equipmentModelId)
