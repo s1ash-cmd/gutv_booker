@@ -5,7 +5,8 @@ public class BookingResponseDto
     public int Id { get; set; }
 
     public string UserName { get; set; } = string.Empty;
-
+    public string Login { get; set; } = string.Empty;
+    public string TelegramId { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
 
     public DateTime CreationTime { get; set; }

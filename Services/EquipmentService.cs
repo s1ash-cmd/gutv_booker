@@ -213,6 +213,26 @@ public class EquipmentService
         return EqItemToResponseDto(newItem);
     }
 
+    public async Task<List<EqModelWithItemsDto>> GetModelsWithItems()
+    {
+        var eqModels = await _context.EquipmentModels
+            .Include(m => m.EquipmentItems)
+            .ToListAsync();
+
+        var result = eqModels.Select(m => new EqModelWithItemsDto
+        {
+            Id = m.Id,
+            Name = m.Name,
+            Description = m.Description,
+            Category = m.Category,
+            Access = m.Access,
+            Attributes = m.Attributes,
+            Items = m.EquipmentItems.Select(EqItemToResponseDto).ToList()
+        }).ToList();
+
+        return result;
+    }
+
     public async Task<List<EqItemResponseDto>> GetAllEquipmentItems()
     {
         var items = await _context.EquipmentItems

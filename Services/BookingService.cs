@@ -42,7 +42,9 @@ public class BookingService
             Comment = booking.Comment,
             AdminComment = booking.AdminComment,
             Warnings = booking.Warnings,
-            UserName = booking.User?.Login ?? string.Empty,
+            UserName = booking.User?.Name ?? string.Empty,
+            Login = booking.User?.Login ?? string.Empty,
+            TelegramId = booking.User?.TelegramId ?? string.Empty,
 
             EquipmentModelIds = booking.BookingItems.Select(bi => new BookingItemDto
             {
@@ -87,7 +89,7 @@ public class BookingService
             throw new ArgumentException("Не выбрано оборудование для бронирования");
 
         var warnings = new Dictionary<string, object>();
-        if ((request.StartTime - DateTime.UtcNow).TotalDays < 3)
+        if ((request.StartTime - DateTime.UtcNow).TotalDays < 2)
             warnings["Неверная дата"] = "Бронирование создается меньше чем за 3 дня";
 
         var booking = CreateDtoToBooking(request);

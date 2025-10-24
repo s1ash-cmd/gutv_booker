@@ -51,6 +51,14 @@ public class EquipmentController : ControllerBase
         }
     }
 
+    // GET api/equipment/get_models_with_items
+    [HttpGet("get_models_with_items")]
+    public async Task<ActionResult<List<EqModelWithItemsDto>>> GetModelsWithItems()
+    {
+        var modelsWithItems = await _equipmentService.GetModelsWithItems();
+        return Ok(modelsWithItems);
+    }
+
     // GET api/equipment/get_all_models
     [HttpGet("get_all_models")]
     public async Task<ActionResult<List<EqModelResponseDto>>> GetAllEquipmentModels()
