@@ -1,9 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using gutv_booker.Services;
 using gutv_booker.Models;
-using Microsoft.AspNetCore.Mvc;
+using gutv_booker.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace gutv_booker.Controllers
 {

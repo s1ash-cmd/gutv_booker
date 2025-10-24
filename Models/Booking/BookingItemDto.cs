@@ -4,6 +4,7 @@ public class BookingItemDto
 {
     public int Id { get; set; }
     public int EquipmentItemId { get; set; }
+    public string ModelName { get; set; } = string.Empty;
     public string InventoryNumber { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using gutv_booker.Services;
+﻿using gutv_booker.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace gutv_booker.Controllers
 {

@@ -10,6 +10,6 @@
 
 public class EquipmentRequestItem
 {
-    public int ModelId { get; set; }
+    public string ModelName { get; set; } = string.Empty;
     public int Quantity { get; set; } = 1;
 }
