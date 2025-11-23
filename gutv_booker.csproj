@@ -37,4 +37,10 @@
     <Compile Remove="Migrations\AppDbContextModelSnapshot.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

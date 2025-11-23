@@ -115,7 +115,7 @@
         }
       }
     },
-    "/api/Booking/{id}": {
+    "/api/Booking/get_by_id/{id}": {
       "get": {
         "tags": [
           "Booking"
@@ -155,7 +155,7 @@
         }
       }
     },
-    "/api/Booking/user/{userId}": {
+    "/api/Booking/get_by_user/{userId}": {
       "get": {
         "tags": [
           "Booking"
@@ -204,45 +204,7 @@
         }
       }
     },
-    "/api/Booking/user/me": {
-      "get": {
-        "tags": [
-          "Booking"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookingResponseDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookingResponseDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookingResponseDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Booking/equipment/{equipmentItemId}": {
+    "/api/Booking/get_by_item/{equipmentItemId}": {
       "get": {
         "tags": [
           "Booking"
@@ -291,7 +253,7 @@
         }
       }
     },
-    "/api/Booking/status/{status}": {
+    "/api/Booking/get_by_status/{status}": {
       "get": {
         "tags": [
           "Booking"
@@ -302,7 +264,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/BookingStatus"
             }
           }
         ],
@@ -339,14 +301,14 @@
         }
       }
     },
-    "/api/Booking/invnumber/{invNumber}": {
+    "/api/Booking/get_by_invnum/{inventoryNumber}": {
       "get": {
         "tags": [
           "Booking"
         ],
         "parameters": [
           {
-            "name": "invNumber",
+            "name": "inventoryNumber",
             "in": "path",
             "required": true,
             "schema": {
@@ -387,14 +349,14 @@
         }
       }
     },
-    "/api/Booking/approve/{id}": {
+    "/api/Booking/approve/{bookingId}": {
       "patch": {
         "tags": [
           "Booking"
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "bookingId",
             "in": "path",
             "required": true,
             "schema": {
@@ -403,6 +365,67 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Booking/reject/{bookingId}": {
+      "patch": {
+        "tags": [
+          "Booking"
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -434,7 +457,7 @@
       }
     },
     "/api/Booking/cancel/{id}": {
-      "delete": {
+      "patch": {
         "tags": [
           "Booking"
         ],
@@ -449,6 +472,25 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -456,7 +498,7 @@
         }
       }
     },
-    "/api/Equipment/create_type": {
+    "/api/Equipment/create_model": {
       "post": {
         "tags": [
           "Equipment"
@@ -465,17 +507,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             }
           }
@@ -486,17 +528,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               }
             }
@@ -504,7 +546,7 @@
         }
       }
     },
-    "/api/Equipment/get_all_types": {
+    "/api/Equipment/get_models_with_items": {
       "get": {
         "tags": [
           "Equipment"
@@ -517,7 +559,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelWithItemsDto"
                   }
                 }
               },
@@ -525,7 +567,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelWithItemsDto"
                   }
                 }
               },
@@ -533,7 +575,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelWithItemsDto"
                   }
                 }
               }
@@ -542,7 +584,45 @@
         }
       }
     },
-    "/api/Equipment/get_type_by_id/{id}": {
+    "/api/Equipment/get_all_models": {
+      "get": {
+        "tags": [
+          "Equipment"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EqModelResponseDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EqModelResponseDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EqModelResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Equipment/get_model_by_id/{id}": {
       "get": {
         "tags": [
           "Equipment"
@@ -564,17 +644,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentType"
+                  "$ref": "#/components/schemas/EqModelResponseDto"
                 }
               }
             }
@@ -582,14 +662,14 @@
         }
       }
     },
-    "/api/Equipment/get_type_by_name/{namePart}": {
+    "/api/Equipment/get_model_by_name/{name}": {
       "get": {
         "tags": [
           "Equipment"
         ],
         "parameters": [
           {
-            "name": "namePart",
+            "name": "name",
             "in": "path",
             "required": true,
             "schema": {
@@ -605,7 +685,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -613,7 +693,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -621,7 +701,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               }
@@ -630,7 +710,7 @@
         }
       }
     },
-    "/api/Equipment/get_type_by_category/{category}": {
+    "/api/Equipment/get_model_by_category/{category}": {
       "get": {
         "tags": [
           "Equipment"
@@ -653,7 +733,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -661,7 +741,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -669,7 +749,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               }
@@ -678,7 +758,7 @@
         }
       }
     },
-    "/api/Equipment/get_available_to_me": {
+    "/api/Equipment/available_models_to_me": {
       "get": {
         "tags": [
           "Equipment"
@@ -691,7 +771,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -699,7 +779,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               },
@@ -707,7 +787,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentType"
+                    "$ref": "#/components/schemas/EqModelResponseDto"
                   }
                 }
               }
@@ -716,7 +796,7 @@
         }
       }
     },
-    "/api/Equipment/update_type/{id}": {
+    "/api/Equipment/update_model/{id}": {
       "put": {
         "tags": [
           "Equipment"
@@ -736,17 +816,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/EquipmentType"
+                "$ref": "#/components/schemas/CreateEqModelRequestDto"
               }
             }
           }
@@ -758,7 +838,7 @@
         }
       }
     },
-    "/api/Equipment/delete_type/{id}": {
+    "/api/Equipment/delete_model/{id}": {
       "delete": {
         "tags": [
           "Equipment"
@@ -786,42 +866,33 @@
         "tags": [
           "Equipment"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EquipmentItemDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EquipmentItemDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/EquipmentItemDto"
-              }
+        "parameters": [
+          {
+            "name": "equipmentModelId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               }
             }
@@ -842,7 +913,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               },
@@ -850,7 +921,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               },
@@ -858,7 +929,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               }
@@ -889,17 +960,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EquipmentItemDto"
+                  "$ref": "#/components/schemas/EqItemResponseDto"
                 }
               }
             }
@@ -907,14 +978,14 @@
         }
       }
     },
-    "/api/Equipment/get_item_by_type/{typeId}": {
+    "/api/Equipment/get_items_by_model/{modelId}": {
       "get": {
         "tags": [
           "Equipment"
         ],
         "parameters": [
           {
-            "name": "typeId",
+            "name": "modelId",
             "in": "path",
             "required": true,
             "schema": {
@@ -931,7 +1002,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               },
@@ -939,7 +1010,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               },
@@ -947,7 +1018,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EquipmentItemDto"
+                    "$ref": "#/components/schemas/EqItemResponseDto"
                   }
                 }
               }
@@ -975,44 +1046,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/Report/equipment": {
-      "get": {
-        "tags": [
-          "Report"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EquipmentTypeReportDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EquipmentTypeReportDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EquipmentTypeReportDto"
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -1047,17 +1080,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               }
             }
@@ -1078,7 +1111,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               },
@@ -1086,7 +1119,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               },
@@ -1094,7 +1127,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               }
@@ -1125,17 +1158,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserNoAuthDto"
+                  "$ref": "#/components/schemas/UserResponseDto"
                 }
               }
             }
@@ -1166,7 +1199,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               },
@@ -1174,7 +1207,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               },
@@ -1182,7 +1215,55 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoAuthDto"
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/get_by_role/{role}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
                   }
                 }
               }
@@ -1260,6 +1341,29 @@
         }
       }
     },
+    "/api/Users/grant_ronin/{id}": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Users/make_user/{id}": {
       "patch": {
         "tags": [
@@ -1305,39 +1409,22 @@
           }
         }
       }
+    },
+    "/api/Users/delete_me": {
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "BookingItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "bookingId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "equipmentItemId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "isReturned": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
       "BookingItemDto": {
         "type": "object",
         "properties": {
@@ -1348,6 +1435,10 @@
           "equipmentItemId": {
             "type": "integer",
             "format": "int32"
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true
           },
           "inventoryNumber": {
             "type": "string",
@@ -1374,23 +1465,31 @@
             "type": "integer",
             "format": "int32"
           },
-          "userId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
+          "userName": {
             "type": "string",
             "nullable": true
           },
-          "creationDate": {
+          "login": {
+            "type": "string",
+            "nullable": true
+          },
+          "telegramId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "creationTime": {
             "type": "string",
             "format": "date-time"
           },
-          "startDate": {
+          "startTime": {
             "type": "string",
             "format": "date-time"
           },
-          "endDate": {
+          "endTime": {
             "type": "string",
             "format": "date-time"
           },
@@ -1398,7 +1497,7 @@
             "type": "string",
             "nullable": true
           },
-          "items": {
+          "equipmentModelIds": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/BookingItemDto"
@@ -1406,48 +1505,80 @@
             "nullable": true
           },
           "warnings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
+            "type": "object",
+            "additionalProperties": {},
             "nullable": true
           },
           "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "adminComment": {
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
+      "BookingStatus": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "CreateBookingRequestDto": {
         "type": "object",
         "properties": {
-          "userId": {
-            "type": "integer",
-            "format": "int32"
+          "reason": {
+            "type": "string",
+            "nullable": true
           },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EquipmentRequestItem"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEqModelRequestDto": {
+        "type": "object",
+        "properties": {
           "name": {
             "type": "string",
             "nullable": true
           },
-          "start": {
+          "description": {
             "type": "string",
-            "format": "date-time"
-          },
-          "end": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "equipmentTypeIds": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            },
             "nullable": true
           },
-          "comment": {
-            "type": "string",
+          "category": {
+            "$ref": "#/components/schemas/EquipmentCategory"
+          },
+          "osnova": {
+            "type": "boolean"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {},
             "nullable": true
           }
         },
@@ -1468,13 +1599,9 @@
             "type": "string",
             "nullable": true
           },
-          "telegramId": {
-            "type": "string",
-            "nullable": true
-          },
-          "joinDate": {
-            "type": "string",
-            "format": "date"
+          "joinYear": {
+            "type": "integer",
+            "format": "int32"
           },
           "ronin": {
             "type": "boolean"
@@ -1482,74 +1609,7 @@
         },
         "additionalProperties": false
       },
-      "EquipmentCategory": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "EquipmentItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "equipmentTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "equipmentType": {
-            "$ref": "#/components/schemas/EquipmentType"
-          },
-          "inventoryNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "available": {
-            "type": "boolean"
-          },
-          "bookingItems": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BookingItem"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "EquipmentItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "equipmentTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "inventoryNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "available": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "EquipmentItemReportDto": {
+      "EqItemResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -1563,18 +1623,18 @@
           "available": {
             "type": "boolean"
           },
-          "typeName": {
+          "modelName": {
             "type": "string",
             "nullable": true
           },
-          "typeCategory": {
+          "modelCategory": {
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "EquipmentType": {
+      "EqModelResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -1592,28 +1652,18 @@
           "category": {
             "$ref": "#/components/schemas/EquipmentCategory"
           },
-          "osnova": {
-            "type": "boolean"
-          },
-          "ronin": {
-            "type": "boolean"
+          "access": {
+            "$ref": "#/components/schemas/EquipmentAccess"
           },
           "attributes": {
             "type": "object",
-            "additionalProperties": { },
-            "nullable": true
-          },
-          "equipmentItems": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EquipmentItem"
-            },
+            "additionalProperties": {},
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "EquipmentTypeReportDto": {
+      "EqModelWithItemsDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -1629,26 +1679,60 @@
             "nullable": true
           },
           "category": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/EquipmentCategory"
           },
-          "osnova": {
-            "type": "boolean"
-          },
-          "ronin": {
-            "type": "boolean"
+          "access": {
+            "$ref": "#/components/schemas/EquipmentAccess"
           },
           "attributes": {
             "type": "object",
-            "additionalProperties": { },
+            "additionalProperties": {},
             "nullable": true
           },
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EquipmentItemReportDto"
+              "$ref": "#/components/schemas/EqItemResponseDto"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquipmentAccess": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "EquipmentCategory": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "EquipmentRequestItem": {
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "type": "string",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -1677,7 +1761,7 @@
         },
         "additionalProperties": false
       },
-      "UserNoAuthDto": {
+      "UserResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -1693,15 +1777,10 @@
             "nullable": true
           },
           "role": {
-            "$ref": "#/components/schemas/UserRole"
+            "type": "string",
+            "nullable": true
           },
           "banned": {
-            "type": "boolean"
-          },
-          "osnova": {
-            "type": "boolean"
-          },
-          "ronin": {
             "type": "boolean"
           }
         },
@@ -1710,7 +1789,9 @@
       "UserRole": {
         "enum": [
           0,
-          1
+          1,
+          2,
+          3
         ],
         "type": "integer",
         "format": "int32"
@@ -1727,7 +1808,7 @@
   },
   "security": [
     {
-      "Bearer": [ ]
+      "Bearer": []
     }
   ]
 }
