@@ -77,6 +77,23 @@ namespace gutv_booker.Controllers
             return Ok(user);
         }
 
+        // GET api/users/get_me
+        [Authorize]
+        [HttpGet("get_me")]
+        public async Task<ActionResult<UserResponseDto>> GetMe()
+        {
+            int id = GetIdFromToken();
+
+            if (id <= 0)
+                return BadRequest("Некорректный ID пользователя.");
+
+            var user = await _userService.GetUserById(id);
+            if (user == null)
+                return NotFound($"Пользователь с ID {id} не найден");
+
+            return Ok(user);
+        }
+
         // GET api/users/get_by_name/{namePart}
         [Authorize(Roles = "Admin")]
         [HttpGet("get_by_name/{namePart}")]
