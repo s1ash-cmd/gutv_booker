@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,6 +28,7 @@ namespace gutv_booker.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.Login),
+                new Claim(JwtRegisteredClaimNames.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
