@@ -142,6 +142,28 @@ public class EquipmentController : ControllerBase
         }
     }
 
+    // GET api/equipment/get_available_items
+    [HttpGet("get_available_items_by_model")]
+    public async Task<ActionResult<List<EqItemResponseDto>>> GetAvailableItemsByModel(
+        [FromQuery] int modelId,
+        [FromQuery] DateTime start,
+        [FromQuery] DateTime end)
+    {
+        try
+        {
+            var items = await _equipmentService.GetAvailableEquipmentItemsByModel(modelId, start, end);
+            return Ok(items);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     // PUT api/equipment/update_model/{id}
     [Authorize(Roles = "Admin")]
     [HttpPut("update_model/{id}")]
@@ -234,6 +256,22 @@ public class EquipmentController : ControllerBase
         {
             var items = await _equipmentService.GetEquipmentItemsByModel(modelId);
             return Ok(items);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    // PATCH api/equipment/toggle_availability/{id}
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("toggle_availability/{id}")]
+    public async Task<ActionResult> ToggleEquipmentItemAvailability(int id)
+    {
+        try
+        {
+            await _equipmentService.ToggleAvailability(id);
+            return Ok();
         }
         catch (KeyNotFoundException ex)
         {

@@ -1,4 +1,4 @@
-﻿using gutv_booker.Data;
+using gutv_booker.Data;
 using gutv_booker.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -281,6 +281,46 @@ public class EquipmentService
             throw new KeyNotFoundException($"Экземпляр оборудования с ID {id} не найден");
 
         _context.EquipmentItems.Remove(equipmentItem);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<EqItemResponseDto>> GetAvailableEquipmentItemsByModel(
+        int equipmentModelId,
+        DateTime start,
+        DateTime end)
+    {
+        if (equipmentModelId <= 0)
+            throw new ArgumentException("Некорректный ID модели", nameof(equipmentModelId));
+
+        if (start >= end)
+            throw new ArgumentException("Дата начала должна быть раньше даты окончания");
+
+        var exists = await _context.EquipmentModels.AnyAsync(m => m.Id == equipmentModelId);
+        if (!exists)
+            throw new KeyNotFoundException($"Модель оборудования с ID {equipmentModelId} не найдена");
+
+        var items = await _context.EquipmentItems
+            .AsNoTracking()
+            .Include(e => e.EquipmentModel)
+            .Where(e => e.EquipmentModelId == equipmentModelId)
+            .Where(e => e.Available)
+            .Where(e => !e.BookingItems.Any(bi =>
+                (bi.Booking.Status == Booking.BookingStatus.Pending ||
+                 bi.Booking.Status == Booking.BookingStatus.Approved) &&
+                start < bi.EndDate && end > bi.StartDate
+            ))
+            .ToListAsync();
+
+        return items.Select(EqItemToResponseDto).ToList();
+    }
+
+    public async Task ToggleAvailability(int id)
+    {
+        var equipmentItem = await _context.EquipmentItems.FindAsync(id);
+        if (equipmentItem == null)
+            throw new KeyNotFoundException($"Экземпляр оборудования с ID {id} не найден");
+
+        equipmentItem.Available = !equipmentItem.Available;
         await _context.SaveChangesAsync();
     }
 }
