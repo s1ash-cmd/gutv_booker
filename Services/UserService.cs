@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using gutv_booker.Data;
 using gutv_booker.Models;
@@ -39,6 +39,7 @@ public class UserService
     {
         Id = user.Id,
         Name = user.Name,
+        Login = user.Login,
         TelegramId = user.TelegramId,
         Role = user.Role.ToString(),
         Banned = user.Banned

@@ -1,4 +1,4 @@
-﻿using gutv_booker.Data;
+using gutv_booker.Data;
 using gutv_booker.Models;
 using Microsoft.EntityFrameworkCore;
 using static gutv_booker.Models.EquipmentModel;
@@ -150,6 +150,18 @@ public class BookingService
             .FirstAsync(b => b.Id == booking.Id);
 
         return BookingToResponseDto(createdBooking);
+    }
+
+    public async Task<List<BookingResponseDto>> GetAllBookings()
+    {
+        var bookings = await _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.BookingItems)
+            .ThenInclude(bi => bi.EquipmentItem)
+            .ThenInclude(ei => ei.EquipmentModel)
+            .ToListAsync();
+
+        return bookings.Select(BookingToResponseDto).ToList();
     }
 
     public async Task<BookingResponseDto> GetBookingById(int id)

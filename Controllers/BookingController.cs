@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using gutv_booker.Models;
 using gutv_booker.Services;
@@ -88,6 +88,44 @@ public class BookingController : ControllerBase
     [HttpGet("get_by_user/{userId}")]
     public async Task<ActionResult<List<BookingResponseDto>>> GetBookingsByUser(int userId)
     {
+        try
+        {
+            var bookings = await _bookingService.GetBookingsByUser(userId);
+            return Ok(bookings);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // GET api/booking/get_all
+    [Authorize(Roles = "Admin")]
+    [HttpGet("get_all")]
+    public async Task<ActionResult<List<BookingResponseDto>>> GetAllBookings()
+    {
+        try
+        {
+            var bookings = await _bookingService.GetAllBookings();
+            return Ok(bookings);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    // GET api/booking/get_my_bookings
+    [Authorize]
+    [HttpGet("get_my_bookings")]
+    public async Task<ActionResult<List<BookingResponseDto>>> GetMyBookings()
+    {
+        int userId = GetIdFromToken();
+
         try
         {
             var bookings = await _bookingService.GetBookingsByUser(userId);
