@@ -112,21 +112,19 @@ public class BookingService
             {
                 case EquipmentAccess.Ronin:
                     if (user.Role < UserRole.Ronin)
-                        throw new UnauthorizedAccessException("У вас нет доступа к Ronin");
+                        throw new InvalidOperationException($"У вас нет доступа к оборудованию '{item.ModelName}'. Требуется разрешение Ronin");
                     break;
                 case EquipmentAccess.Osnova:
                     if (user.Role < UserRole.Osnova)
-                        warnings["Доступ"] = "Нет доступа к оборудованию основы";
+                        throw new InvalidOperationException($"У вас нет доступа к оборудованию '{item.ModelName}'. Требуется быть в основе");
                     break;
                 case EquipmentAccess.User:
                     break;
             }
 
-            booking.Warnings = warnings;
-
             var availableItems = await GetAvailableItems(eqModel.Id, request.StartTime, request.EndTime, item.Quantity);
             if (availableItems.Count < item.Quantity)
-                throw new InvalidOperationException($"Недостаточно доступного оборудования модели '{item.ModelName}'");
+                throw new InvalidOperationException($"Недостаточно доступного оборудования модели '{item.ModelName}'. Доступно: {availableItems.Count}, требуется: {item.Quantity}");
 
             bookingItems.AddRange(availableItems.Select(equipmentItem => new BookingItem
             {
@@ -137,6 +135,7 @@ public class BookingService
             }));
         }
 
+        booking.Warnings = warnings;
         booking.BookingItems = bookingItems;
 
         _context.Bookings.Add(booking);
