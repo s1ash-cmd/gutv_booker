@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -42,7 +42,7 @@ namespace gutv_booker.Models
             set => WarningsJson = JsonSerializer.Serialize(value);
         }
 
-        public string Comment { get; set; } = "";
+        public string? Comment { get; set; }
         public string? AdminComment { get; set; }
     }
 }

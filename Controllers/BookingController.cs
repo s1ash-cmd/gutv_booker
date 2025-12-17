@@ -64,7 +64,7 @@ public class BookingController : ControllerBase
     }
 
     // GET api/booking/get_by_id/{id}
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpGet("get_by_id/{id}")]
     public async Task<ActionResult<BookingResponseDto>> GetBookingById(int id)
     {
