@@ -363,7 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 appsettings.*.json
-!appsettings.json
+appsettings.json
 /.idea
 /gutv_booker_v1.zip
 /.config

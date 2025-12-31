@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using gutv_booker.Services.Telegram;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +83,14 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EquipmentService>();
 builder.Services.AddScoped<BookingService>();
+
+var botToken = builder.Configuration["BotConfiguration:BotToken"];
+if (string.IsNullOrEmpty(botToken))
+    throw new InvalidOperationException("Bot Token is not configured");
+
+builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken));
+builder.Services.AddSingleton<TelegramUpdateHandler>();
+builder.Services.AddHostedService<TelegramBotHostedService>();
 
 builder.Services.AddControllers();
 
