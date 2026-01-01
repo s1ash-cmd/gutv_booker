@@ -1,4 +1,3 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -20,7 +19,7 @@ namespace gutv_booker.Models
         public string PasswordHash { get; set; } = "";
         public string Salt { get; set; } = "";
         public string Name { get; set; } = "";
-        public string? TelegramId { get; set; }
+        public string TelegramId { get; set; } = "";
         public UserRole Role { get; set; } = UserRole.User;
         public bool Banned { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using gutv_booker.Models;
 
 namespace gutv_booker.Data
@@ -18,6 +18,10 @@ namespace gutv_booker.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.TelegramId)
+                .IsUnique();
 
             modelBuilder.Entity<EquipmentItem>()
                 .HasIndex(e => e.InventoryNumber)

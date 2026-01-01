@@ -1,4 +1,4 @@
-﻿using Telegram.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using gutv_booker.Services.Telegram.Commands;
 
@@ -18,7 +18,9 @@ public class TelegramUpdateHandler
         _commands = new Dictionary<string, Type>
         {
             { "/start", typeof(StartCommand) },
-            { "/equipment", typeof(EquipmentCommand) }
+            { "👤 Профиль", typeof(ProfileCommand) }
+            // { "📅 Мои бронирования", typeof(BookingsCommand) },
+            // { "ℹ️ Помощь", typeof(HelpCommand) }
         };
     }
 
@@ -30,11 +32,11 @@ public class TelegramUpdateHandler
         var chatId = update.Message.Chat.Id;
         var username = update.Message.From?.Username ?? "Unknown";
 
-        _logger.LogInformation($"Получено от @{username}: {messageText}");
+        _logger.LogInformation($"Получено от @{username} chatId: {chatId}, текст: {messageText}");
 
-        var command = messageText.Split(' ')[0].ToLower();
+        var command = messageText.Split(' ')[0];
 
-        if (_commands.TryGetValue(command, out var commandType))
+        if (_commands.TryGetValue(messageText, out var commandType))
         {
             using var scope = _serviceProvider.CreateScope();
             var commandInstance = (ICommand)ActivatorUtilities.CreateInstance(scope.ServiceProvider, commandType);
@@ -42,9 +44,10 @@ public class TelegramUpdateHandler
         }
         else
         {
-            await botClient.SendMessage(chatId, "❓Неизвестная команда. Используйте /help", cancellationToken: cancellationToken);
+            await botClient.SendMessage(chatId, "❓Неизвестная команда. Используйте /start", cancellationToken: cancellationToken);
         }
     }
+
 
     public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {

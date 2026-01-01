@@ -94,6 +94,18 @@ namespace gutv_booker.Controllers
             return Ok(user);
         }
 
+        //GET api/users/get_user_by_telegram
+        [HttpGet("get_user_by_telegram")]
+        public async Task<ActionResult<UserResponseDto>> GetUserByTelegram(string telegramId)
+        {
+            var user = await _userService.GetUserByTelegramId(telegramId);
+
+            if (user == null)
+                return NotFound($"Пользователь с Telegram ID {telegramId} не найден");
+
+            return Ok(user);
+        }
+
         // GET api/users/get_by_name/{namePart}
         [Authorize(Roles = "Admin")]
         [HttpGet("get_by_name/{namePart}")]

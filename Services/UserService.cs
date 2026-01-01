@@ -109,6 +109,14 @@ public class UserService
         return users.Any() ? users : null;
     }
 
+    public async Task<UserResponseDto?> GetUserByTelegramId(string telegramId)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.TelegramId == telegramId);
+
+        if (user == null) return null;
+        return UserToResponseDto(user);
+    }
+
     public async Task<List<UserResponseDto>?> GetUserByRole(User.UserRole role)
     {
         var users = await _context.Users.Where(u => u.Role == role).Select(u => UserService.UserToResponseDto(u)).ToListAsync();

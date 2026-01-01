@@ -1,4 +1,4 @@
-﻿using Telegram.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using System.Text;
 
@@ -13,7 +13,7 @@ public class EquipmentCommand : ICommand
         _equipmentService = equipmentService;
     }
 
-    public string Name => "/equipment";
+    public string Name => "📋 Оборудование";
 
     public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
