@@ -31,7 +31,9 @@ public class UserService
             Salt = salt,
             Name = request.Name,
             Role = request.Ronin ? User.UserRole.Ronin : User.UserRole.User,
-            JoinYear = request.JoinYear
+            JoinYear = request.JoinYear,
+            TelegramChatId = null,
+            TelegramUsername = null
         };
     }
 
@@ -40,7 +42,9 @@ public class UserService
         Id = user.Id,
         Name = user.Name,
         Login = user.Login,
-        TelegramId = user.TelegramId,
+        TelegramChatId = user.TelegramChatId,
+        TelegramUsername = user.TelegramUsername,
+        IsTelegramLinked = user.TelegramChatId.HasValue,
         Role = user.Role.ToString(),
         Banned = user.Banned
     };
@@ -104,22 +108,109 @@ public class UserService
     public async Task<List<UserResponseDto>?> GetUsersByName(string namePart)
     {
         var users = await _context.Users
-            .Where(u => EF.Functions.ILike(u.Name, $"%{namePart}%")).Select(u => UserService.UserToResponseDto(u)).ToListAsync();
+            .Where(u => EF.Functions.ILike(u.Name, $"%{namePart}%"))
+            .Select(u => UserService.UserToResponseDto(u))
+            .ToListAsync();
 
         return users.Any() ? users : null;
     }
 
-    public async Task<UserResponseDto?> GetUserByTelegramId(string telegramId)
+    public async Task<User?> GetUserByTelegramChatId(long chatId)
     {
-        var user = await _context.Users.SingleOrDefaultAsync(u => u.TelegramId == telegramId);
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.TelegramChatId == chatId);
+    }
 
-        if (user == null) return null;
-        return UserToResponseDto(user);
+    public async Task<string> GenerateTelegramLinkCode(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new KeyNotFoundException("Пользователь не найден");
+
+        if (user.TelegramChatId.HasValue)
+            throw new InvalidOperationException("Telegram уже привязан к вашему аккаунту");
+
+        var random = new Random();
+        var code = random.Next(100000, 999999).ToString();
+
+        user.TelegramLinkCode = code;
+        user.TelegramLinkCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _context.SaveChangesAsync();
+        return code;
+    }
+
+    public async Task<User> LinkTelegramByCode(string code, long chatId, string? username)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.TelegramLinkCode == code);
+
+        if (user == null)
+            throw new KeyNotFoundException("Неверный код привязки");
+
+        if (user.TelegramLinkCodeExpiry == null || user.TelegramLinkCodeExpiry < DateTime.UtcNow)
+            throw new InvalidOperationException("Срок действия кода истек. Сгенерируйте новый код в личном кабинете");
+
+        var existingLink = await _context.Users
+            .FirstOrDefaultAsync(u => u.TelegramChatId == chatId);
+
+        if (existingLink != null)
+        {
+            if (existingLink.Id == user.Id)
+                throw new InvalidOperationException("Этот Telegram уже привязан к вашему аккаунту");
+            else
+                throw new InvalidOperationException(
+                    "Этот Telegram уже привязан к другому аккаунту. Обратитесь к администратору");
+        }
+
+        user.TelegramChatId = chatId;
+        user.TelegramUsername = username;
+        user.TelegramLinkCode = null;
+        user.TelegramLinkCodeExpiry = null;
+
+        await _context.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<bool> UnlinkTelegram(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new KeyNotFoundException("Пользователь не найден");
+
+        user.TelegramChatId = null;
+        user.TelegramUsername = null;
+        user.TelegramLinkCode = null;
+        user.TelegramLinkCodeExpiry = null;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task UpdateTelegramUsername(long chatId, string? newUsername)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.TelegramChatId == chatId);
+
+        if (user != null && user.TelegramUsername != newUsername)
+        {
+            user.TelegramUsername = newUsername;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public string GenerateTelegramDeepLink(string code, string botUsername)
+    {
+        botUsername = botUsername.TrimStart('@');
+        return $"https://t.me/{botUsername}?start=LINK_{code}";
     }
 
     public async Task<List<UserResponseDto>?> GetUserByRole(User.UserRole role)
     {
-        var users = await _context.Users.Where(u => u.Role == role).Select(u => UserService.UserToResponseDto(u)).ToListAsync();
+        var users = await _context.Users
+            .Where(u => u.Role == role)
+            .Select(u => UserService.UserToResponseDto(u))
+            .ToListAsync();
 
         return users.Any() ? users : null;
     }

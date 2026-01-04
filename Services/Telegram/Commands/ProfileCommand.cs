@@ -1,6 +1,8 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using System.Text;
+using UserModel = gutv_booker.Models.User;
 
 namespace gutv_booker.Services.Telegram.Commands;
 
@@ -17,26 +19,52 @@ public class ProfileCommand : ICommand
 
     public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
-        try
+        var user = await _userService.GetUserByTelegramChatId(message.Chat.Id);
+
+        if (user == null)
         {
-            var user = await _userService.GetUserByTelegramId(message.From.Username);
-
-            if (user == null)
-            {
-                await botClient.SendMessage(message.Chat.Id, "Пользователь не зарегистрирован", cancellationToken: cancellationToken);
-                return;
-            }
-
-            var response = new StringBuilder("👤 Ваш профиль:\n\n");
-            response.AppendLine($"Имя: {user.Name}");
-            response.AppendLine($"Логин: {user.Login}");
-            response.AppendLine($"Telegram: @{user.TelegramId}");
-
-            await botClient.SendMessage(message.Chat.Id, response.ToString(), cancellationToken: cancellationToken);
+            await botClient.SendMessage(
+                chatId: message.Chat.Id,
+                text: "❌ Пользователь не найден.\n" +
+                      "Используйте /link для привязки аккаунта.",
+                cancellationToken: cancellationToken);
+            return;
         }
-        catch (Exception ex)
+
+        var response = new StringBuilder();
+        response.AppendLine("👤 <b>Ваш профиль:</b>\n");
+        response.AppendLine($"<b>Имя:</b> <code>{user.Name}</code>");
+        response.AppendLine($"<b>Логин:</b> <code>{user.Login}</code>");
+        response.AppendLine($"<b>Роль:</b> <code>{GetRole(user.Role)}</code>");
+
+        if (user.Role == UserModel.UserRole.Admin || user.Role == UserModel.UserRole.Ronin)
         {
-            await botClient.SendMessage(message.Chat.Id, "Ошибка получения данных", cancellationToken: cancellationToken);
+            response.AppendLine($"<b>Разрешение на Ronin:</b> <code>Да</code>");
         }
+        else
+        {
+            response.AppendLine($"<b>Разрешение на Ronin:</b> <code>Нет</code>");
+        }
+
+
+        if (user.Banned)
+            response.AppendLine("\n🚫 <b>Аккаунт заблокирован</b>");
+
+        await botClient.SendMessage(
+            chatId: message.Chat.Id,
+            text: response.ToString(),
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+
+    private string GetRole(UserModel.UserRole role)
+    {
+        return role switch
+        {
+            UserModel.UserRole.Admin => "Администратор",
+            UserModel.UserRole.Ronin => "Пользователь",
+            UserModel.UserRole.Osnova => "Пользователь",
+            UserModel.UserRole.User => "Пользователь"
+        };
     }
 }

@@ -1,5 +1,6 @@
 using gutv_booker.Data;
 using gutv_booker.Models;
+using gutv_booker.Services.Telegram;
 using Microsoft.EntityFrameworkCore;
 using static gutv_booker.Models.EquipmentModel;
 using static gutv_booker.Models.User;
@@ -9,10 +10,12 @@ namespace gutv_booker.Services;
 public class BookingService
 {
     private readonly AppDbContext _context;
+    private readonly TelegramNotificationService _notificationService;
 
-    public BookingService(AppDbContext context)
+    public BookingService(AppDbContext context, TelegramNotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     private Booking CreateDtoToBooking(CreateBookingRequestDto request)
@@ -44,7 +47,7 @@ public class BookingService
             Warnings = booking.Warnings,
             UserName = booking.User?.Name ?? string.Empty,
             Login = booking.User?.Login ?? string.Empty,
-            TelegramId = booking.User?.TelegramId ?? string.Empty,
+            TelegramUsername = booking.User?.TelegramUsername ?? string.Empty,
 
             EquipmentModelIds = booking.BookingItems.Select(bi => new BookingItemDto
             {
@@ -147,6 +150,8 @@ public class BookingService
             .ThenInclude(bi => bi.EquipmentItem)
             .ThenInclude(ei => ei.EquipmentModel)
             .FirstAsync(b => b.Id == booking.Id);
+
+        await _notificationService.NotifyAdminsNewBooking(createdBooking);
 
         return BookingToResponseDto(createdBooking);
     }
@@ -257,11 +262,16 @@ public class BookingService
         var booking = await _context.Bookings.FindAsync(bookingId)
                       ?? throw new KeyNotFoundException($"Бронирование с ID {bookingId} не найдено");
 
+        var oldStatus = booking.Status.ToString();
         booking.Status = Booking.BookingStatus.Approved;
 
-        if (!string.IsNullOrWhiteSpace(adminComment)) booking.AdminComment = adminComment;
+        if (!string.IsNullOrWhiteSpace(adminComment))
+            booking.AdminComment = adminComment;
 
         await _context.SaveChangesAsync();
+
+        await _notificationService.NotifyUserBookingStatusChanged(booking, oldStatus, "Approved");
+
         return true;
     }
 
@@ -270,8 +280,12 @@ public class BookingService
         var booking = await _context.Bookings.FindAsync(bookingId)
                       ?? throw new KeyNotFoundException($"Бронирование с ID {bookingId} не найдено");
 
+        var oldStatus = booking.Status.ToString();
         booking.Status = Booking.BookingStatus.Completed;
         await _context.SaveChangesAsync();
+
+        await _notificationService.NotifyUserBookingStatusChanged(booking, oldStatus, "Completed");
+
         return true;
     }
 
@@ -290,12 +304,16 @@ public class BookingService
         if (booking.Status == Booking.BookingStatus.Cancelled)
             throw new InvalidOperationException("Это бронирование уже отменено");
 
+        var oldStatus = booking.Status.ToString();
         booking.Status = Booking.BookingStatus.Cancelled;
 
         if (isAdmin && !string.IsNullOrWhiteSpace(adminComment))
             booking.AdminComment = adminComment;
 
         await _context.SaveChangesAsync();
+
+        await _notificationService.NotifyUserBookingStatusChanged(booking, oldStatus, "Cancelled");
+
         return true;
     }
 }

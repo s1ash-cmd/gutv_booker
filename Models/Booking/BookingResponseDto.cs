@@ -1,4 +1,4 @@
-﻿namespace gutv_booker.Models;
+namespace gutv_booker.Models;
 
 public class BookingResponseDto
 {
@@ -6,7 +6,7 @@ public class BookingResponseDto
 
     public string UserName { get; set; } = string.Empty;
     public string Login { get; set; } = string.Empty;
-    public string TelegramId { get; set; } = string.Empty;
+    public string TelegramUsername { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
 
     public DateTime CreationTime { get; set; }

@@ -90,8 +90,8 @@ if (string.IsNullOrEmpty(botToken))
 
 builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken));
 builder.Services.AddSingleton<TelegramUpdateHandler>();
-builder.Services.AddSingleton<TelegramMenuService>();
-builder.Services.AddHostedService<TelegramBotHostedService>();
+builder.Services.AddHostedService<TelegramBotService>();
+builder.Services.AddScoped<TelegramNotificationService>();
 
 builder.Services.AddControllers();
 

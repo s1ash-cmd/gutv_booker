@@ -196,21 +196,52 @@ public class EquipmentService
             throw new KeyNotFoundException("Модель оборудования не найдена");
 
         var categoryCode = (int)model.Category;
-        var countForType = await _context.EquipmentItems.CountAsync(e => e.EquipmentModelId == equipmentModelId);
-        var inventoryNumber = $"{categoryCode}-{equipmentModelId:D3}-{countForType + 1:D2}";
 
-        var newItem = new EquipmentItem
+        using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+
+        try
         {
-            EquipmentModelId = equipmentModelId,
-            InventoryNumber = inventoryNumber,
-            Available = true,
-            EquipmentModel = model
-        };
+            await _context.Database.ExecuteSqlRawAsync(
+                "SELECT 1 FROM \"EquipmentModels\" WHERE \"Id\" = {0} FOR UPDATE",
+                equipmentModelId);
 
-        _context.EquipmentItems.Add(newItem);
-        await _context.SaveChangesAsync();
+            var lastItem = await _context.EquipmentItems
+                .Where(e => e.EquipmentModelId == equipmentModelId)
+                .OrderByDescending(e => e.Id)
+                .Select(e => e.InventoryNumber)
+                .FirstOrDefaultAsync();
 
-        return EqItemToResponseDto(newItem);
+            var nextNumber = 1;
+            if (lastItem != null)
+            {
+                var parts = lastItem.Split('-');
+                if (parts.Length >= 3 && int.TryParse(parts[2], out var lastNum))
+                {
+                    nextNumber = lastNum + 1;
+                }
+            }
+
+            var inventoryNumber = $"{categoryCode}-{equipmentModelId:D3}-{nextNumber:D2}";
+
+            var newItem = new EquipmentItem
+            {
+                EquipmentModelId = equipmentModelId,
+                InventoryNumber = inventoryNumber,
+                Available = true,
+                EquipmentModel = model
+            };
+
+            _context.EquipmentItems.Add(newItem);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return EqItemToResponseDto(newItem);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<List<EqModelWithItemsDto>> GetModelsWithItems()

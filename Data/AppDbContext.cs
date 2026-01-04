@@ -19,10 +19,6 @@ namespace gutv_booker.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.TelegramId)
-                .IsUnique();
-
             modelBuilder.Entity<EquipmentItem>()
                 .HasIndex(e => e.InventoryNumber)
                 .IsUnique();

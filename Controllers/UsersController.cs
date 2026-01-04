@@ -12,10 +12,12 @@ namespace gutv_booker.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly IConfiguration _configuration;
 
-        public UsersController(UserService userService)
+        public UsersController(UserService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
         }
 
         [NonAction]
@@ -94,18 +96,6 @@ namespace gutv_booker.Controllers
             return Ok(user);
         }
 
-        //GET api/users/get_user_by_telegram
-        [HttpGet("get_user_by_telegram")]
-        public async Task<ActionResult<UserResponseDto>> GetUserByTelegram(string telegramId)
-        {
-            var user = await _userService.GetUserByTelegramId(telegramId);
-
-            if (user == null)
-                return NotFound($"Пользователь с Telegram ID {telegramId} не найден");
-
-            return Ok(user);
-        }
-
         // GET api/users/get_by_name/{namePart}
         [Authorize(Roles = "Admin")]
         [HttpGet("get_by_name/{namePart}")]
@@ -129,6 +119,64 @@ namespace gutv_booker.Controllers
                 return NotFound($"Пользователи с этой ролью не найдены");
 
             return Ok(users);
+        }
+
+        // POST api/users/generate_telegram_code
+        [Authorize]
+        [HttpPost("generate_telegram_code")]
+        public async Task<ActionResult> GenerateTelegramLinkCode()
+        {
+            try
+            {
+                var userId = GetIdFromToken();
+                var code = await _userService.GenerateTelegramLinkCode(userId);
+
+                var botUsername = _configuration["BotConfiguration:BotUsername"];
+                var deepLink = _userService.GenerateTelegramDeepLink(code, botUsername);
+
+                return Ok(new
+                {
+                    code = code,
+                    deepLink = deepLink,
+                    expiresIn = "10 минут",
+                    botUsername = $"{botUsername}",
+                    instruction = $"Перейдите по ссылке или отправьте боту:\n/link {code}"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { error = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        // POST api/users/unlink_telegram
+        [Authorize]
+        [HttpPost("unlink_telegram")]
+        public async Task<ActionResult> UnlinkTelegram()
+        {
+            try
+            {
+                var userId = GetIdFromToken();
+                await _userService.UnlinkTelegram(userId);
+
+                return Ok(new { message = "Telegram успешно отвязан" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         // PATCH api/users/ban/{id}
@@ -188,7 +236,7 @@ namespace gutv_booker.Controllers
             if (!success)
                 return NotFound($"Пользователь с ID {id} не найден");
 
-            return Ok($"Пользователь с ID {id} теперь администратор");
+            return Ok($"Пользователь с ID {id} получил разрешение на Ronin");
         }
 
         // PATCH api/users/make_user/{id}

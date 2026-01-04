@@ -19,7 +19,13 @@ namespace gutv_booker.Models
         public string PasswordHash { get; set; } = "";
         public string Salt { get; set; } = "";
         public string Name { get; set; } = "";
-        public string TelegramId { get; set; } = "";
+
+        public long? TelegramChatId { get; set; }
+        public string? TelegramUsername { get; set; }
+
+        public string? TelegramLinkCode { get; set; }
+        public DateTime? TelegramLinkCodeExpiry { get; set; }
+
         public UserRole Role { get; set; } = UserRole.User;
         public bool Banned { get; set; }
 

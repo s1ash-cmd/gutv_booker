@@ -34,7 +34,6 @@ namespace gutv_booker.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreationTime")
@@ -197,7 +196,16 @@ namespace gutv_booker.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TelegramId")
+                    b.Property<long?>("TelegramChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TelegramLinkCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("TelegramLinkCodeExpiry")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TelegramUsername")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
