@@ -1,5 +1,6 @@
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using gutv_booker.Data;
 using gutv_booker.Models;
 using Microsoft.EntityFrameworkCore;
@@ -52,30 +53,31 @@ public class TelegramNotificationService
                 message += $"\n💭 Комментарий: {booking.Comment}";
 
             if (booking.Warnings.Any())
-                message += $"\n\n⚠️ Предупреждения: {booking.Warnings.Count}";
+                message += $"\n\n⚠️ Предупреждения: {string.Join(", ", booking.Warnings)}";
 
             message += $"\n\n⏳ Статус: <b>Ожидает подтверждения</b>";
 
+            var keyboard = new InlineKeyboardMarkup(new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("✅ Подтвердить", $"booking:approve:{booking.Id}"),
+                    InlineKeyboardButton.WithCallbackData("❌ Отклонить", $"booking:reject:{booking.Id}")
+                }
+            });
+
             foreach (var admin in admins)
             {
-                try
-                {
-                    await _botClient.SendMessage(
-                        chatId: admin.TelegramChatId!.Value,
-                        text: message,
-                        parseMode: ParseMode.Html);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Не удалось отправить уведомление админу {admin.Name} (ChatId: {admin.TelegramChatId})");
-                }
+                await _botClient.SendMessage(
+                    chatId: admin.TelegramChatId!.Value,
+                    text: message,
+                    parseMode: ParseMode.Html,
+                    replyMarkup: keyboard);
             }
-
-            _logger.LogInformation($"Отправлены уведомления о новом бронировании #{booking.Id} для {admins.Count} админов");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Ошибка отправки уведомлений о новом бронировании #{booking.Id}");
+            _logger.LogError(ex, $"Ошибка отправки уведомлений о бронировании #{booking.Id}");
         }
     }
 
@@ -87,7 +89,7 @@ public class TelegramNotificationService
 
             if (user?.TelegramChatId == null)
             {
-                _logger.LogInformation($"Пользователь {user?.Name} не имеет привязанного Telegram");
+                _logger.LogInformation($"Пользователь {user?.Name} не привязал Telegram");
                 return;
             }
 
@@ -96,8 +98,7 @@ public class TelegramNotificationService
                 "Approved" => "✅",
                 "Completed" => "🏁",
                 "Cancelled" => "❌",
-                "Rejected" => "🚫",
-                _ => "📋"
+                "Rejected" => "🚫"
             };
 
             var statusText = newStatus switch
@@ -105,8 +106,7 @@ public class TelegramNotificationService
                 "Approved" => "Одобрено",
                 "Completed" => "Завершено",
                 "Cancelled" => "Отменено",
-                "Rejected" => "Отклонено",
-                _ => newStatus
+                "Rejected" => "Отклонено"
             };
 
             var bookingItems = await _context.BookingItems
@@ -133,8 +133,6 @@ public class TelegramNotificationService
                 chatId: user.TelegramChatId.Value,
                 text: message,
                 parseMode: ParseMode.Html);
-
-            _logger.LogInformation($"Отправлено уведомление пользователю {user.Name} о смене статуса бронирования #{booking.Id}");
         }
         catch (Exception ex)
         {
